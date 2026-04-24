@@ -10,6 +10,8 @@ class Informe extends Model
 {
     use HasFactory;
 
+    protected $table = 'informes';
+
     protected $fillable = [
         'user_id',
         'nombre',

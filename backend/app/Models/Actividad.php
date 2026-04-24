@@ -4,14 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Actividad extends Model
+class Actividad extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
+
+    protected $table = 'actividades';
 
     protected $fillable = [
+        'club_id',
         'titulo',
         'descripcion',
         'fecha_inicio',
@@ -31,6 +37,11 @@ class Actividad extends Model
         'distancia' => 'decimal:2',
         'costo' => 'decimal:2',
     ];
+
+    public function club(): BelongsTo
+    {
+        return $this->belongsTo(Club::class);
+    }
 
     public function inscripciones(): HasMany
     {

@@ -11,13 +11,12 @@ return new class extends Migration {
             $table->id();
 
             $table->foreignId('club_id')
+                ->nullable()
                 ->constrained('clubes')
-                ->cascadeOnDelete();
+                ->nullOnDelete();
 
-
-
-            $table->string('nombre');
-            $table->string('apellido');
+            $table->string('nombre')->nullable();
+            $table->string('apellido')->nullable();
             $table->date('fecha_nacimiento')->nullable();
             $table->string('sexo')->nullable();
             $table->string('telefono')->nullable();

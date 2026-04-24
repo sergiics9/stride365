@@ -10,6 +10,8 @@ class Comunicado extends Model
 {
     use HasFactory;
 
+    protected $table = 'comunicados';
+
     protected $fillable = [
         'grupo_id',
         'user_id',
