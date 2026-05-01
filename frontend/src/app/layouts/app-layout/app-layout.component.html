@@ -1,0 +1,53 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-semibold" routerLink="/feed">TFG Clubes</a>
+
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#mainNav"
+      aria-controls="mainNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/feed" routerLinkActive="active">Feed</a>
+        </li>
+
+        @if (auth.isSuperAdmin() || auth.subscribed()) {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/clubes" routerLinkActive="active">Clubes</a>
+          </li>
+        }
+
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/subscription" routerLinkActive="active">Suscripción</a>
+        </li>
+      </ul>
+
+      <ul class="navbar-nav align-items-lg-center">
+        <li class="nav-item d-none d-lg-block me-3 text-light small">
+          {{ auth.fullName() }}
+          @if (auth.roles().length) {
+            <span class="badge bg-primary ms-2">{{ auth.roles()[0] }}</span>
+          }
+        </li>
+        <li class="nav-item">
+          <button type="button" class="btn btn-outline-light btn-sm" (click)="logout()">
+            Cerrar sesión
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="container-fluid py-4">
+  <router-outlet />
+</main>
