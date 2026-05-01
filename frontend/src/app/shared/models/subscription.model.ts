@@ -4,6 +4,7 @@ export interface SubscriptionStatus {
   on_grace_period: boolean;
   cancelled: boolean;
   ends_at: string | null;
+  current_period_end: string | null;
   stripe_status: string | null;
   stripe_price: string | null;
 }

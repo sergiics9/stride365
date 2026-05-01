@@ -1,0 +1,12 @@
+:host {
+  display: contents;
+}
+
+.toast-container {
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  min-width: 280px;
+}

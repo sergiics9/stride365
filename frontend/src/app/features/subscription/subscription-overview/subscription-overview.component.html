@@ -1,4 +1,4 @@
-<div class="container" style="max-width: 760px">
+<div class="container" style="max-width: 880px">
   <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
       <h1 class="h3 fw-semibold mb-1">Mi suscripción</h1>
@@ -23,6 +23,16 @@
     <div class="alert alert-warning small" role="status">{{ notice() }}</div>
   }
 
+  @if (checkoutSuccess()) {
+    <div class="alert alert-success d-flex align-items-center" role="status">
+      <span class="me-2 fs-5" aria-hidden="true">✓</span>
+      <div>
+        <strong>¡Pago completado!</strong> Tu suscripción está activa. Hemos enviado la factura
+        en PDF a tu email.
+      </div>
+    </div>
+  }
+
   @if (error(); as err) {
     <div class="alert alert-danger small" role="alert">
       No se pudo cargar el estado: {{ err.message }}
@@ -35,7 +45,8 @@
     </div>
   }
 
-  <div class="card shadow-sm border-0">
+  <!-- Estado actual -->
+  <div class="card shadow-sm border-0 mb-4">
     <div class="card-body p-4">
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h2 class="h5 mb-0">Estado actual</h2>
@@ -60,11 +71,11 @@
           <dd class="col-sm-8">{{ s.stripe_status ?? '—' }}</dd>
 
           <dt class="col-sm-4 text-muted">Plan</dt>
-          <dd class="col-sm-8">{{ s.stripe_price ?? '—' }}</dd>
+          <dd class="col-sm-8">{{ planLabel() }}</dd>
 
-          <dt class="col-sm-4 text-muted">Vence el</dt>
+          <dt class="col-sm-4 text-muted">{{ nextRenewalLabel() }}</dt>
           <dd class="col-sm-8">
-            {{ s.ends_at ? (s.ends_at | date: 'medium') : '—' }}
+            {{ nextRenewal() ? (nextRenewal() | date: 'longDate') : '—' }}
           </dd>
         </dl>
       } @else if (loading()) {
@@ -78,18 +89,157 @@
     </div>
   </div>
 
-  <div class="card shadow-sm border-0 mt-4">
+  <!-- Gestión del plan -->
+  <div class="card shadow-sm border-0 mb-4">
     <div class="card-body p-4">
-      <h2 class="h5 mb-2">Gestionar plan</h2>
-      <p class="text-muted small mb-3">
-        Las acciones de alta, cambio y cancelación se completarán en la siguiente fase con la
-        integración de Stripe.
-      </p>
-      <div class="d-flex flex-wrap gap-2">
-        <button type="button" class="btn btn-primary" disabled>Suscribirse</button>
-        <button type="button" class="btn btn-outline-danger" disabled>Cancelar</button>
-        <a class="btn btn-outline-secondary ms-auto" routerLink="/feed">Volver al Feed</a>
+      <h2 class="h5 mb-3">Gestionar plan</h2>
+
+      @if (!status()?.subscribed && !status()?.on_grace_period) {
+        @if (plans.length > 1) {
+          <div class="mb-3">
+            <label for="plan-select" class="form-label small">Selecciona un plan</label>
+            <select
+              id="plan-select"
+              class="form-select form-select-sm"
+              [value]="selectedPlanId()"
+              (change)="selectedPlanId.set($any($event.target).value)"
+            >
+              @for (plan of plans; track plan.id) {
+                <option [value]="plan.id">{{ plan.name }} — {{ plan.amountLabel }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        @if (selectedPlan(); as plan) {
+          <div class="bg-light rounded p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <div class="fw-semibold">{{ plan.name }}</div>
+                <div class="text-muted small">{{ plan.description }}</div>
+              </div>
+              <div class="fw-semibold">{{ plan.amountLabel }}</div>
+            </div>
+          </div>
+        }
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="action() === 'checkout'"
+          (click)="startCheckout()"
+        >
+          @if (action() === 'checkout') {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          }
+          Suscribirse
+        </button>
+      } @else if (subscription.canResume()) {
+        <p class="text-muted small mb-3">
+          Tu suscripción está cancelada pero sigue activa hasta
+          @if (status()?.ends_at; as endsAt) {
+            <strong>{{ endsAt | date: 'longDate' }}</strong>
+          }. Puedes reanudarla en cualquier momento.
+        </p>
+        <button
+          type="button"
+          class="btn btn-success me-2"
+          [disabled]="action() === 'resume'"
+          (click)="resumeSubscription()"
+        >
+          @if (action() === 'resume') {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          }
+          Reanudar suscripción
+        </button>
+      } @else if (subscription.canCancel()) {
+        <p class="text-muted small mb-3">
+          Si cancelas, conservarás el acceso hasta el final del periodo facturado.
+        </p>
+        <button
+          type="button"
+          class="btn btn-outline-danger"
+          [disabled]="action() === 'cancel'"
+          (click)="cancelSubscription()"
+        >
+          @if (action() === 'cancel') {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          }
+          Cancelar suscripción
+        </button>
+      }
+
+      <a class="btn btn-link ms-2" routerLink="/feed">Volver al Feed</a>
+    </div>
+  </div>
+
+  <!-- Facturas -->
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h5 mb-0">Facturas</h2>
+        <button
+          type="button"
+          class="btn btn-outline-secondary btn-sm"
+          (click)="reloadInvoices()"
+          [disabled]="invoicesLoading()"
+        >
+          @if (invoicesLoading()) {
+            <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+          }
+          Actualizar
+        </button>
       </div>
+
+      @if (invoicesError(); as ie) {
+        <div class="alert alert-danger small" role="alert">
+          No se pudieron cargar las facturas: {{ ie.message }}
+        </div>
+      }
+
+      @if (invoicesLoading() && invoices().length === 0) {
+        <div class="text-center text-muted py-3">
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          Cargando facturas…
+        </div>
+      } @else if (invoices().length === 0) {
+        <p class="text-muted small mb-0">No tienes facturas aún.</p>
+      } @else {
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead>
+              <tr>
+                <th scope="col">Número</th>
+                <th scope="col">Fecha</th>
+                <th scope="col" class="text-end">Total</th>
+                <th scope="col" class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (invoice of invoices(); track invoice.id) {
+                <tr>
+                  <td>{{ invoice.number ?? invoice.id }}</td>
+                  <td>{{ invoice.date ? (invoice.date | date: 'medium') : '—' }}</td>
+                  <td class="text-end">{{ invoice.total }}</td>
+                  <td class="text-end">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-primary"
+                      (click)="download(invoice)"
+                      [disabled]="downloadingInvoice() === invoice.id"
+                    >
+                      @if (downloadingInvoice() === invoice.id) {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                      }
+                      Descargar
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
     </div>
   </div>
 </div>

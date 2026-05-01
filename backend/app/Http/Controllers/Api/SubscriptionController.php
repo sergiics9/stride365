@@ -14,12 +14,27 @@ class SubscriptionController extends Controller
 
         $subscription = $user->subscription('default');
 
+        $currentPeriodEnd = null;
+        if ($subscription && $subscription->stripe_status === 'active') {
+            try {
+                $stripeSub = $subscription->asStripeSubscription();
+                $periodEnd = $stripeSub->current_period_end
+                    ?? ($stripeSub->items->data[0]->current_period_end ?? null);
+                if ($periodEnd) {
+                    $currentPeriodEnd = \Carbon\Carbon::createFromTimestamp($periodEnd)->toIso8601String();
+                }
+            } catch (\Throwable $e) {
+                $currentPeriodEnd = null;
+            }
+        }
+
         return response()->json([
             'subscribed' => $user->subscribed('default'),
             'on_trial' => $user->onTrial('default'),
             'on_grace_period' => $subscription?->onGracePeriod() ?? false,
             'cancelled' => $subscription?->canceled() ?? false,
             'ends_at' => $subscription?->ends_at,
+            'current_period_end' => $currentPeriodEnd,
             'stripe_status' => $subscription?->stripe_status,
             'stripe_price' => $subscription?->stripe_price,
         ]);
@@ -36,10 +51,12 @@ class SubscriptionController extends Controller
         $user = $request->user();
         $user->createOrGetStripeCustomer();
 
+        $separator = str_contains($validated['success_url'], '?') ? '&' : '?';
+
         $checkout = $user
             ->newSubscription('default', $validated['price_id'])
             ->checkout([
-                'success_url' => $validated['success_url'].'?session_id={CHECKOUT_SESSION_ID}',
+                'success_url' => $validated['success_url'].$separator.'session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => $validated['cancel_url'],
             ]);
 

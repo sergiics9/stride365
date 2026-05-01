@@ -11,5 +11,6 @@ export * from './paginated.model';
 export * from './pago.model';
 export * from './publicacion-feed.model';
 export * from './role.model';
+export * from './stripe-plan.model';
 export * from './subscription.model';
 export * from './user.model';
