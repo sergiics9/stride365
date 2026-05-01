@@ -1,0 +1,98 @@
+<div class="card shadow-sm border-0 mx-auto" style="max-width: 440px">
+  <div class="card-body p-4 p-md-5">
+    <h1 class="h3 fw-semibold mb-1">Iniciar sesión</h1>
+    <p class="text-muted small mb-4">Accede a tu cuenta de TFG Clubes</p>
+
+    @if (notice()) {
+      <div class="alert alert-warning small" role="status">{{ notice() }}</div>
+    }
+
+    @if (serverError(); as err) {
+      @if (!err.errors) {
+        <div class="alert alert-danger small" role="alert">{{ err.message }}</div>
+      }
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="mb-3">
+        <label for="email" class="form-label">Correo electrónico</label>
+        <input
+          id="email"
+          type="email"
+          class="form-control"
+          formControlName="email"
+          autocomplete="email"
+          [class.is-invalid]="
+            (form.controls.email.touched && form.controls.email.invalid) || !!emailError()
+          "
+        />
+        @if (form.controls.email.touched && form.controls.email.errors; as e) {
+          <div class="invalid-feedback">
+            @if (e['required']) {
+              El correo es obligatorio.
+            } @else if (e['email']) {
+              Introduce un correo válido.
+            }
+          </div>
+        }
+        @if (emailError()) {
+          <div class="invalid-feedback d-block">{{ emailError() }}</div>
+        }
+      </div>
+
+      <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <label for="password" class="form-label">Contraseña</label>
+          <button
+            type="button"
+            class="btn btn-link btn-sm p-0 text-decoration-none"
+            (click)="togglePassword()"
+          >
+            {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
+          </button>
+        </div>
+        <input
+          id="password"
+          [type]="showPassword() ? 'text' : 'password'"
+          class="form-control"
+          formControlName="password"
+          autocomplete="current-password"
+          [class.is-invalid]="
+            (form.controls.password.touched && form.controls.password.invalid) ||
+            !!passwordError()
+          "
+        />
+        @if (form.controls.password.touched && form.controls.password.errors; as e) {
+          <div class="invalid-feedback">
+            @if (e['required']) {
+              La contraseña es obligatoria.
+            } @else if (e['minlength']) {
+              Mínimo 8 caracteres.
+            }
+          </div>
+        }
+        @if (passwordError()) {
+          <div class="invalid-feedback d-block">{{ passwordError() }}</div>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary w-100"
+        [disabled]="submitting() || form.invalid"
+      >
+        @if (submitting()) {
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        }
+        Entrar
+      </button>
+    </form>
+
+    <hr class="my-4" />
+
+    <p class="text-center small mb-0">
+      ¿No tienes cuenta?
+      <a routerLink="/auth/register" class="fw-semibold text-decoration-none">Crear cuenta</a>
+    </p>
+  </div>
+</div>
