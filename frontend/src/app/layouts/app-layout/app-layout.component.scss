@@ -10,3 +10,7 @@
 .nav-link.active {
   font-weight: 600;
 }
+
+.dropdown-toggle::after {
+  vertical-align: middle;
+}

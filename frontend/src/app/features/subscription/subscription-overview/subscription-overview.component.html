@@ -1,0 +1,95 @@
+<div class="container" style="max-width: 760px">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h1 class="h3 fw-semibold mb-1">Mi suscripción</h1>
+      <p class="text-muted small mb-0">
+        Estado de la suscripción que habilita el acceso al módulo Clubes.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="btn btn-outline-secondary btn-sm"
+      (click)="reload()"
+      [disabled]="loading()"
+    >
+      @if (loading()) {
+        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+      }
+      Actualizar
+    </button>
+  </div>
+
+  @if (notice()) {
+    <div class="alert alert-warning small" role="status">{{ notice() }}</div>
+  }
+
+  @if (error(); as err) {
+    <div class="alert alert-danger small" role="alert">
+      No se pudo cargar el estado: {{ err.message }}
+    </div>
+  }
+
+  @if (auth.isSuperAdmin()) {
+    <div class="alert alert-info small" role="status">
+      Como super administrador no necesitas suscripción para acceder al módulo Clubes.
+    </div>
+  }
+
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h5 mb-0">Estado actual</h2>
+        <span class="badge rounded-pill" [class]="badge().cls">{{ badge().label }}</span>
+      </div>
+
+      @if (status(); as s) {
+        <dl class="row mb-0">
+          <dt class="col-sm-4 text-muted">Suscrito</dt>
+          <dd class="col-sm-8">{{ s.subscribed ? 'Sí' : 'No' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Periodo de prueba</dt>
+          <dd class="col-sm-8">{{ s.on_trial ? 'Sí' : 'No' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Periodo de gracia</dt>
+          <dd class="col-sm-8">{{ s.on_grace_period ? 'Sí' : 'No' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Cancelada</dt>
+          <dd class="col-sm-8">{{ s.cancelled ? 'Sí' : 'No' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Estado en Stripe</dt>
+          <dd class="col-sm-8">{{ s.stripe_status ?? '—' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Plan</dt>
+          <dd class="col-sm-8">{{ s.stripe_price ?? '—' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Vence el</dt>
+          <dd class="col-sm-8">
+            {{ s.ends_at ? (s.ends_at | date: 'medium') : '—' }}
+          </dd>
+        </dl>
+      } @else if (loading()) {
+        <div class="text-center text-muted py-4">
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          Cargando…
+        </div>
+      } @else {
+        <p class="text-muted mb-0">Sin datos.</p>
+      }
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0 mt-4">
+    <div class="card-body p-4">
+      <h2 class="h5 mb-2">Gestionar plan</h2>
+      <p class="text-muted small mb-3">
+        Las acciones de alta, cambio y cancelación se completarán en la siguiente fase con la
+        integración de Stripe.
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-primary" disabled>Suscribirse</button>
+        <button type="button" class="btn btn-outline-danger" disabled>Cancelar</button>
+        <a class="btn btn-outline-secondary ms-auto" routerLink="/feed">Volver al Feed</a>
+      </div>
+    </div>
+  </div>
+</div>

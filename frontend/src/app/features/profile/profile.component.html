@@ -1,0 +1,123 @@
+<div class="container" style="max-width: 760px">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h1 class="h3 fw-semibold mb-1">Mi perfil</h1>
+      <p class="text-muted small mb-0">Datos personales y de socio.</p>
+    </div>
+    <button
+      type="button"
+      class="btn btn-outline-secondary btn-sm"
+      (click)="reload()"
+      [disabled]="auth.loading()"
+    >
+      @if (auth.loading()) {
+        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+      }
+      Refrescar
+    </button>
+  </div>
+
+  @if (user(); as u) {
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          @if (u.foto_url) {
+            <img
+              [src]="u.foto_url"
+              [alt]="auth.fullName()"
+              class="rounded-circle"
+              width="64"
+              height="64"
+            />
+          } @else {
+            <div
+              class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-semibold"
+              style="width: 64px; height: 64px; font-size: 1.5rem"
+              aria-hidden="true"
+            >
+              {{ initials() }}
+            </div>
+          }
+
+          <div>
+            <h2 class="h5 mb-1">{{ auth.fullName() }}</h2>
+            <div class="text-muted small">{{ u.email }}</div>
+            <div class="mt-1">
+              @for (role of roles(); track role) {
+                <span class="badge bg-primary me-1">
+                  {{ roleLabels[role] ?? role }}
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <hr />
+
+        <dl class="row mb-0">
+          <dt class="col-sm-4 text-muted">Nombre</dt>
+          <dd class="col-sm-8">{{ u.nombre ?? '—' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Apellido</dt>
+          <dd class="col-sm-8">{{ u.apellido ?? '—' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Email</dt>
+          <dd class="col-sm-8">{{ u.email }}</dd>
+
+          <dt class="col-sm-4 text-muted">Teléfono</dt>
+          <dd class="col-sm-8">{{ u.telefono ?? '—' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Sexo</dt>
+          <dd class="col-sm-8">{{ u.sexo ?? '—' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Fecha de nacimiento</dt>
+          <dd class="col-sm-8">
+            {{ u.fecha_nacimiento ? (u.fecha_nacimiento | date: 'longDate') : '—' }}
+          </dd>
+
+          <dt class="col-sm-4 text-muted">Dirección</dt>
+          <dd class="col-sm-8">{{ u.direccion ?? '—' }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <h2 class="h5 mb-3">Información de socio</h2>
+        <dl class="row mb-0">
+          <dt class="col-sm-4 text-muted">Estado</dt>
+          <dd class="col-sm-8">
+            <span
+              class="badge"
+              [class.bg-success]="u.estado === 'activo'"
+              [class.bg-danger]="u.estado === 'baja'"
+              [class.bg-warning]="u.estado === 'suspendido'"
+              [class.text-dark]="u.estado === 'suspendido'"
+            >
+              {{ u.estado }}
+            </span>
+          </dd>
+
+          <dt class="col-sm-4 text-muted">Fecha de alta</dt>
+          <dd class="col-sm-8">
+            {{ u.fecha_alta ? (u.fecha_alta | date: 'longDate') : '—' }}
+          </dd>
+
+          <dt class="col-sm-4 text-muted">Club</dt>
+          <dd class="col-sm-8">{{ u.club?.nombre ?? '—' }}</dd>
+        </dl>
+
+        <hr />
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-outline-secondary" routerLink="/subscription">Mi suscripción</a>
+          <a class="btn btn-outline-secondary" routerLink="/feed">Volver al Feed</a>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="text-center text-muted py-5">
+      <span class="spinner-border me-2" role="status"></span>
+      Cargando perfil…
+    </div>
+  }
+</div>
