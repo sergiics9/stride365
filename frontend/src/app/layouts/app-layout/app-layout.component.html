@@ -20,11 +20,24 @@
           <a class="nav-link" routerLink="/feed" routerLinkActive="active">Feed</a>
         </li>
 
-        @if (canAccessClubes()) {
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/clubes" routerLinkActive="active">Clubes</a>
-          </li>
-        }
+        <li class="nav-item">
+          <a
+            class="nav-link d-inline-flex align-items-center gap-1"
+            routerLink="/clubes"
+            routerLinkActive="active"
+            [attr.title]="
+              canAccessClubes()
+                ? null
+                : 'Necesitas una suscripción activa para acceder al módulo Clubes'
+            "
+          >
+            Clubes
+            @if (!canAccessClubes()) {
+              <span aria-hidden="true">&#128274;</span>
+              <span class="visually-hidden">Requiere suscripción</span>
+            }
+          </a>
+        </li>
       </ul>
 
       <ul class="navbar-nav align-items-lg-center">

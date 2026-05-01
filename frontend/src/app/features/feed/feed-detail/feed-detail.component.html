@@ -1,0 +1,76 @@
+<div class="container" style="max-width: 960px">
+  <a class="text-decoration-none small d-inline-flex align-items-center mb-3" routerLink="/feed">
+    <span aria-hidden="true">&larr;</span>&nbsp;Volver al feed
+  </a>
+
+  @if (publicacion(); as pub) {
+    <article>
+      <header class="mb-3">
+        <h1 class="h3 fw-semibold mb-2">{{ pub.titulo ?? 'Publicación' }}</h1>
+        <div class="d-flex flex-wrap gap-2 align-items-center small text-muted">
+          <span>{{ pub.user?.nombre }} {{ pub.user?.apellido }}</span>
+          <span aria-hidden="true">·</span>
+          <time
+            [attr.datetime]="pub.fecha_publicacion"
+            [title]="pub.fecha_publicacion | date: 'medium'"
+          >
+            {{ pub.fecha_publicacion | date: 'longDate' }}
+          </time>
+          @if (pub.tipo) {
+            <span class="badge bg-light text-dark text-uppercase">{{ pub.tipo }}</span>
+          }
+          @if (pub.visibilidad) {
+            <span class="badge bg-secondary text-uppercase">Dificultad: {{ pub.visibilidad }}</span>
+          }
+        </div>
+      </header>
+
+      @if (pub.imagen_url) {
+        <img
+          class="img-fluid rounded shadow-sm mb-4"
+          [src]="pub.imagen_url"
+          [alt]="pub.titulo ?? 'Imagen de la publicación'"
+        />
+      }
+
+      <section class="mb-4">
+        <p class="mb-0" style="white-space: pre-wrap">{{ pub.contenido }}</p>
+      </section>
+
+      <section class="mb-4">
+        <h2 class="h5 mb-2">Track</h2>
+        @if (gpx()) {
+          <div #mapContainer class="map-container shadow-sm rounded border"></div>
+          @if (mapStatus() === 'loading') {
+            <p class="text-muted small mt-2 mb-0">
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Cargando track…
+            </p>
+          } @else if (mapStatus() === 'error') {
+            <p class="text-danger small mt-2 mb-0">No se pudo cargar el track.</p>
+          }
+        } @else {
+          <p class="text-muted small mb-0">Esta publicación no incluye archivo GPX.</p>
+        }
+      </section>
+
+      @if (imagenes().length > 1) {
+        <section class="mb-4">
+          <h2 class="h5 mb-2">Galería</h2>
+          <div class="row g-2 row-cols-2 row-cols-md-3">
+            @for (img of imagenes(); track img.id) {
+              <div class="col">
+                <img
+                  class="img-fluid rounded shadow-sm gallery-img"
+                  [src]="img.original_url ?? img.preview_url"
+                  [alt]="img.name"
+                  loading="lazy"
+                />
+              </div>
+            }
+          </div>
+        </section>
+      }
+    </article>
+  }
+</div>

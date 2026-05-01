@@ -1,0 +1,19 @@
+:host {
+  display: block;
+}
+
+.feed-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.feed-card:hover,
+.feed-card:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+}
+
+.feed-card-img {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #e9ecef;
+}
