@@ -15,25 +15,9 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $permissions = [
             'feed.view', 'feed.create', 'feed.update', 'feed.delete',
-
             'clubes.view', 'clubes.create', 'clubes.update', 'clubes.delete',
-
-            'socios.view', 'socios.create', 'socios.update', 'socios.delete',
-
-            'actividades.view', 'actividades.create', 'actividades.update', 'actividades.delete',
-
-            'inscripciones.view', 'inscripciones.create', 'inscripciones.delete',
-
-            'grupos.view', 'grupos.create', 'grupos.update', 'grupos.delete',
-
-            'comunicados.view', 'comunicados.create', 'comunicados.update', 'comunicados.delete',
-
-            'cuotas.view', 'cuotas.create', 'cuotas.update', 'cuotas.delete',
-
-            'pagos.view', 'pagos.create', 'pagos.delete',
-
+            'clubes.approve', 'clubes.reject',
             'subscriptions.manage',
-
             'admin.access',
         ];
 
@@ -44,38 +28,13 @@ class RolesAndPermissionsSeeder extends Seeder
         $superAdmin = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
         $superAdmin->syncPermissions(Permission::all());
 
-        $adminClub = Role::firstOrCreate(['name' => 'admin_club', 'guard_name' => 'web']);
-        $adminClub->syncPermissions([
-            'clubes.view', 'clubes.update',
-            'socios.view', 'socios.create', 'socios.update', 'socios.delete',
-            'actividades.view', 'actividades.create', 'actividades.update', 'actividades.delete',
-            'inscripciones.view', 'inscripciones.create', 'inscripciones.delete',
-            'grupos.view', 'grupos.create', 'grupos.update', 'grupos.delete',
-            'comunicados.view', 'comunicados.create', 'comunicados.update', 'comunicados.delete',
-            'cuotas.view', 'cuotas.create', 'cuotas.update', 'cuotas.delete',
-            'pagos.view', 'pagos.create', 'pagos.delete',
-            'subscriptions.manage',
-            'feed.view', 'feed.create', 'feed.update', 'feed.delete',
+        $usuario = Role::firstOrCreate(['name' => 'usuario', 'guard_name' => 'web']);
+        $usuario->syncPermissions([
+            'feed.view',
         ]);
 
-        $guia = Role::firstOrCreate(['name' => 'guia', 'guard_name' => 'web']);
-        $guia->syncPermissions([
-            'clubes.view',
-            'socios.view',
-            'actividades.view', 'actividades.create', 'actividades.update',
-            'inscripciones.view',
-            'grupos.view',
-            'comunicados.view', 'comunicados.create', 'comunicados.update', 'comunicados.delete',
-            'feed.view', 'feed.create', 'feed.update',
-        ]);
-
-        $socio = Role::firstOrCreate(['name' => 'socio', 'guard_name' => 'web']);
-        $socio->syncPermissions([
-            'feed.view', 'feed.create',
-            'actividades.view',
-            'inscripciones.view', 'inscripciones.create',
-            'grupos.view',
-            'comunicados.view',
-        ]);
+        Role::where('name', 'admin_club')->where('guard_name', 'web')->delete();
+        Role::where('name', 'guia')->where('guard_name', 'web')->delete();
+        Role::where('name', 'socio')->where('guard_name', 'web')->delete();
     }
 }
