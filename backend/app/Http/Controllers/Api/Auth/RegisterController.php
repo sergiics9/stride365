@@ -11,18 +11,24 @@ class RegisterController extends Controller
 {
     public function __invoke(ApiRegisterRequest $request): JsonResponse
     {
+        $fotoUrl = null;
+        if ($request->hasFile('foto')) {
+            $path = $request->file('foto')->store('users/avatars', 'public');
+            $fotoUrl = $request->getSchemeAndHttpHost().'/storage/'.$path;
+        }
+
         $user = User::create([
-            'club_id' => $request->input('club_id'),
             'nombre' => $request->string('nombre'),
             'apellido' => $request->string('apellido'),
             'email' => $request->string('email'),
             'telefono' => $request->input('telefono'),
             'password' => $request->string('password'),
+            'foto_url' => $fotoUrl,
             'fecha_alta' => now()->toDateString(),
             'estado' => 'activo',
         ]);
 
-        $user->assignRole('socio');
+        $user->assignRole('usuario');
 
         $device = $request->string('device_name')->value() ?: $request->userAgent() ?? 'api';
         $token = $user->createToken($device)->plainTextToken;
