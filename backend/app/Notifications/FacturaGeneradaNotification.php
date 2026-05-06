@@ -11,9 +11,7 @@ class FacturaGeneradaNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(public Invoice $invoice)
-    {
-    }
+    public function __construct(public Invoice $invoice) {}
 
     public function via(object $notifiable): array
     {
@@ -29,18 +27,18 @@ class FacturaGeneradaNotification extends Notification
 
         $pdf = $this->invoice->pdf([
             'vendor' => config('app.name'),
-            'product' => 'Suscripción módulo Clubes',
+            'product' => 'Suscripción TFG Clubes',
         ]);
 
         return (new MailMessage)
             ->subject('Factura de tu suscripción - '.$number)
-            ->greeting('Hola '.($notifiable->nombre ?? ''))
-            ->line('Adjuntamos la factura correspondiente a tu suscripción.')
-            ->line('Número de factura: '.$number)
-            ->line('Total: '.$total)
+            ->view('mail.factura-generada', [
+                'notifiable' => $notifiable,
+                'number' => $number,
+                'total' => $total,
+            ])
             ->attachData($pdf, $filename, [
                 'mime' => 'application/pdf',
-            ])
-            ->line('Gracias por confiar en nosotros.');
+            ]);
     }
 }
