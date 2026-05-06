@@ -29,15 +29,31 @@ class InscripcionController extends Controller
     public function store(StoreInscripcionRequest $request, Actividad $actividad): JsonResponse
     {
         $user = $request->user();
+        $clubId = $actividad->club_id;
 
         $userId = $request->input('user_id', $user->id);
 
         if ($userId !== $user->id) {
-            abort_unless(
-                $user->hasAnyRole(['super_admin', 'admin_club']),
-                403,
-                'Solo admin_club puede inscribir a otros socios.'
-            );
+            $canManage = $user->hasRole('super_admin')
+                || $user->isAdminOfClub($clubId)
+                || $user->isGuideOfClub($clubId);
+            abort_unless($canManage, 403, 'Solo admin o guía pueden inscribir a otros socios.');
+        } else {
+            // Auto-inscripción: socio activo del club
+            $isMember = $user->hasRole('super_admin')
+                || $user->isAdminOfClub($clubId)
+                || $user->isSocioOfClub($clubId);
+            if (! $isMember) {
+                throw ValidationException::withMessages([
+                    'club' => 'Debes ser socio activo del club para inscribirte.',
+                ]);
+            }
+        }
+
+        if (in_array($actividad->estado, ['cancelada', 'finalizada'], true)) {
+            throw ValidationException::withMessages([
+                'actividad' => 'La actividad no admite inscripciones.',
+            ]);
         }
 
         if ($actividad->cupo_maximo && $actividad->inscripciones()->count() >= $actividad->cupo_maximo) {
@@ -46,20 +62,25 @@ class InscripcionController extends Controller
             ]);
         }
 
-        if ($actividad->estado === 'cancelada' || $actividad->estado === 'finalizada') {
+        $exists = Inscripcion::where('actividad_id', $actividad->id)
+            ->where('user_id', $userId)
+            ->exists();
+        if ($exists) {
             throw ValidationException::withMessages([
-                'actividad' => 'La actividad no admite inscripciones.',
+                'user_id' => 'El socio ya está inscrito en esta actividad.',
             ]);
         }
 
-        $inscripcion = Inscripcion::firstOrCreate(
-            ['user_id' => $userId, 'actividad_id' => $actividad->id],
-            ['fecha_inscripcion' => now()]
-        );
+        $inscripcion = Inscripcion::create([
+            'user_id' => $userId,
+            'actividad_id' => $actividad->id,
+            'fecha_inscripcion' => now(),
+        ]);
 
-        $inscripcion->user->notify(new InscripcionConfirmadaNotification($actividad));
+        $inscripcion->load('user:id,nombre,apellido,email');
+        $inscripcion->user?->notify(new InscripcionConfirmadaNotification($actividad));
 
-        return response()->json($inscripcion->load('user:id,nombre,apellido,email'), 201);
+        return response()->json($inscripcion, 201);
     }
 
     public function show(Request $request, Actividad $actividad, Inscripcion $inscripcion): JsonResponse
@@ -75,9 +96,12 @@ class InscripcionController extends Controller
         abort_unless($inscripcion->actividad_id === $actividad->id, 404);
 
         $user = $request->user();
+        $clubId = $actividad->club_id;
 
         $owns = $inscripcion->user_id === $user->id;
-        $canManage = $user->hasAnyRole(['super_admin', 'admin_club']);
+        $canManage = $user->hasRole('super_admin')
+            || $user->isAdminOfClub($clubId)
+            || $user->isGuideOfClub($clubId);
 
         abort_unless($owns || $canManage, 403);
 
@@ -85,7 +109,6 @@ class InscripcionController extends Controller
         $socio = $inscripcion->user;
 
         $inscripcion->delete();
-
         $socio?->notify(new InscripcionCanceladaNotification($actividad, $motivo));
 
         return response()->json(['message' => 'Inscripción cancelada.']);
@@ -94,13 +117,12 @@ class InscripcionController extends Controller
     private function authorizeRead(Request $request, Actividad $actividad): void
     {
         $user = $request->user();
-
         if ($user->hasRole('super_admin')) {
             return;
         }
-
+        $clubId = $actividad->club_id;
         abort_unless(
-            $user->hasAnyRole(['admin_club', 'guia']) && $user->club_id === $actividad->club_id,
+            $user->isAdminOfClub($clubId) || $user->isGuideOfClub($clubId) || $user->isSocioOfClub($clubId),
             403
         );
     }
