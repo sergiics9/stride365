@@ -8,7 +8,19 @@ class UpdateClubRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasAnyRole(['super_admin', 'admin_club']) ?? false;
+        $user = $this->user();
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasRole('super_admin')) {
+            return true;
+        }
+        $club = $this->route('club');
+        if ($club && $user->isAdminOfClub((int) $club->id)) {
+            return true;
+        }
+
+        return false;
     }
 
     public function rules(): array
@@ -16,6 +28,7 @@ class UpdateClubRequest extends FormRequest
         return [
             'nombre' => ['sometimes', 'required', 'string', 'max:150'],
             'descripcion' => ['nullable', 'string'],
+            'logo_url' => ['nullable', 'url', 'max:500'],
             'direccion' => ['nullable', 'string', 'max:255'],
             'telefono' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],

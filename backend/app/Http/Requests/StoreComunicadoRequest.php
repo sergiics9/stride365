@@ -8,7 +8,20 @@ class StoreComunicadoRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasAnyRole(['super_admin', 'admin_club', 'guia']) ?? false;
+        $user = $this->user();
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasRole('super_admin')) {
+            return true;
+        }
+        $club = $this->route('club');
+        if (! $club) {
+            return false;
+        }
+        $clubId = (int) $club->id;
+
+        return $user->isAdminOfClub($clubId) || $user->isGuideOfClub($clubId);
     }
 
     public function rules(): array
@@ -17,6 +30,7 @@ class StoreComunicadoRequest extends FormRequest
             'titulo' => ['required', 'string', 'max:255'],
             'contenido' => ['required', 'string'],
             'fecha_publicacion' => ['nullable', 'date'],
+            'grupo_id' => ['nullable', 'integer', 'exists:grupos,id'],
         ];
     }
 }

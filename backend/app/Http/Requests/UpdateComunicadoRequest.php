@@ -8,7 +8,20 @@ class UpdateComunicadoRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasAnyRole(['super_admin', 'admin_club', 'guia']) ?? false;
+        $user = $this->user();
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasRole('super_admin')) {
+            return true;
+        }
+        $club = $this->route('club');
+        if (! $club) {
+            return false;
+        }
+        $clubId = (int) $club->id;
+
+        return $user->isAdminOfClub($clubId) || $user->isGuideOfClub($clubId);
     }
 
     public function rules(): array
@@ -16,7 +29,7 @@ class UpdateComunicadoRequest extends FormRequest
         return [
             'titulo' => ['sometimes', 'required', 'string', 'max:255'],
             'contenido' => ['sometimes', 'required', 'string'],
-            'fecha_publicacion' => ['nullable', 'date'],
+            'fecha_publicacion' => ['sometimes', 'nullable', 'date'],
         ];
     }
 }

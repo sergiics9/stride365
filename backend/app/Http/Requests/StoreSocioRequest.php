@@ -2,30 +2,43 @@
 
 namespace App\Http\Requests;
 
+use App\Models\ClubUser;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rule;
 
 class StoreSocioRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasAnyRole(['super_admin', 'admin_club']) ?? false;
+        $user = $this->user();
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasRole('super_admin')) {
+            return true;
+        }
+        $club = $this->route('club');
+
+        return $club && $user->isAdminOfClub((int) $club->id);
     }
 
     public function rules(): array
     {
         return [
-            'nombre' => ['required', 'string', 'max:255'],
-            'apellido' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::defaults()],
-            'fecha_nacimiento' => ['nullable', 'date'],
-            'sexo' => ['nullable', 'string', 'in:hombre,mujer,otro'],
+            'email' => ['required', 'email', 'max:255'],
+            'nombre' => ['nullable', 'string', 'max:255'],
+            'apellido' => ['nullable', 'string', 'max:255'],
             'telefono' => ['nullable', 'string', 'max:50'],
-            'direccion' => ['nullable', 'string', 'max:255'],
-            'fecha_alta' => ['nullable', 'date'],
-            'estado' => ['nullable', 'string', 'in:activo,inactivo,baja'],
-            'rol' => ['nullable', 'string', 'in:admin_club,guia,socio'],
+            'password' => ['nullable', 'string', 'min:8'],
+            'status' => [
+                'nullable',
+                'string',
+                Rule::in([
+                    ClubUser::STATUS_PENDING,
+                    ClubUser::STATUS_ACTIVE,
+                    ClubUser::STATUS_INACTIVE,
+                ]),
+            ],
         ];
     }
 }
