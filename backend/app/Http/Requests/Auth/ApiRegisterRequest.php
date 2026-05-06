@@ -19,8 +19,8 @@ class ApiRegisterRequest extends FormRequest
             'apellido' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'club_id' => ['nullable', 'integer', 'exists:clubes,id'],
             'telefono' => ['nullable', 'string', 'max:50'],
+            'foto' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp,gif', 'max:2048'],
             'device_name' => ['nullable', 'string', 'max:255'],
         ];
     }
