@@ -13,6 +13,7 @@ class Comunicado extends Model
     protected $table = 'comunicados';
 
     protected $fillable = [
+        'club_id',
         'grupo_id',
         'user_id',
         'titulo',
@@ -23,6 +24,11 @@ class Comunicado extends Model
     protected $casts = [
         'fecha_publicacion' => 'datetime',
     ];
+
+    public function club(): BelongsTo
+    {
+        return $this->belongsTo(Club::class);
+    }
 
     public function grupo(): BelongsTo
     {

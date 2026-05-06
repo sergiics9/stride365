@@ -16,7 +16,9 @@ class PublicacionFeed extends Model implements HasMedia
 
     protected $fillable = [
         'user_id',
+        'actividad_id',
         'titulo',
+        'resumen',
         'contenido',
         'imagen_url',
         'tipo',
@@ -32,5 +34,10 @@ class PublicacionFeed extends Model implements HasMedia
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function actividad(): BelongsTo
+    {
+        return $this->belongsTo(Actividad::class);
     }
 }
