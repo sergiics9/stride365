@@ -1,7 +1,8 @@
 import { Routes } from '@angular/router';
 
 import { authGuard, guestGuard } from './core/guards/auth.guard';
-import { subscriptionGuard } from './core/guards/subscription.guard';
+import { roleGuard } from './core/guards/role.guard';
+import { clubAccessGuard } from './core/guards/subscription.guard';
 
 export const routes: Routes = [
   {
@@ -25,11 +26,15 @@ export const routes: Routes = [
         loadChildren: () => import('./features/feed/feed.routes').then((m) => m.FEED_ROUTES),
       },
       {
-        path: 'subscription',
+        path: 'memberships',
         loadChildren: () =>
-          import('./features/subscription/subscription.routes').then(
-            (m) => m.SUBSCRIPTION_ROUTES,
+          import('./features/memberships/memberships.routes').then(
+            (m) => m.MEMBERSHIPS_ROUTES,
           ),
+      },
+      {
+        path: 'subscription',
+        redirectTo: 'memberships',
       },
       {
         path: 'perfil',
@@ -38,9 +43,17 @@ export const routes: Routes = [
       },
       {
         path: 'clubes',
-        canMatch: [subscriptionGuard],
+        canMatch: [clubAccessGuard],
         loadChildren: () =>
           import('./features/clubes/clubes.routes').then((m) => m.CLUBES_ROUTES),
+      },
+      {
+        path: 'super-admin',
+        canMatch: [roleGuard('super_admin')],
+        loadChildren: () =>
+          import('./features/super-admin/super-admin.routes').then(
+            (m) => m.SUPER_ADMIN_ROUTES,
+          ),
       },
       {
         path: 'forbidden',

@@ -23,6 +23,10 @@
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "allowedCommonJsDependencies": [
+              "leaflet",
+              "leaflet-gpx"
+            ],
             "assets": [
               {
                 "glob": "**/*",
@@ -43,13 +47,18 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "750kB",
+                  "maximumError": "1.5MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "8kB",
+                  "maximumError": "16kB"
+                },
+                {
+                  "type": "any",
+                  "name": "leaflet-src",
+                  "maximumError": "500kB"
                 }
               ],
               "outputHashing": "all"

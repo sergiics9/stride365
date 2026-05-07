@@ -3,7 +3,11 @@ import { CanMatchFn, Router } from '@angular/router';
 
 import { AuthService } from '../auth/auth.service';
 
-export const subscriptionGuard: CanMatchFn = async () => {
+/**
+ * Módulo Clubes: requiere sesión. Explorar clubes y solicitar uno propio
+ * no exigen membresía previa; actividades/socios/etc. usan otros guards.
+ */
+export const clubAccessGuard: CanMatchFn = async () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
@@ -15,11 +19,7 @@ export const subscriptionGuard: CanMatchFn = async () => {
     await auth.me();
   }
 
-  if (auth.isSuperAdmin() || auth.subscribed()) {
-    return true;
-  }
-
-  return router.createUrlTree(['/subscription'], {
-    queryParams: { reason: 'required' },
-  });
+  return true;
 };
+
+export const subscriptionGuard = clubAccessGuard;

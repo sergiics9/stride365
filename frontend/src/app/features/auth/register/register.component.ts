@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -11,6 +18,15 @@ import { ApiError } from '../../../shared/models';
 import { firstFieldError, toApiError } from '../../../shared/utils/api-error.util';
 import { matchValidator } from '../../../shared/validators/match.validator';
 
+const MAX_FOTO_BYTES = 2 * 1024 * 1024;
+const ACCEPTED_FOTO_MIME = new Set([
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+]);
+
 @Component({
   selector: 'app-register',
   imports: [ReactiveFormsModule, RouterLink],
@@ -18,7 +34,7 @@ import { matchValidator } from '../../../shared/validators/match.validator';
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -38,6 +54,11 @@ export class RegisterComponent {
   protected readonly submitting = signal(false);
   protected readonly serverError = signal<ApiError | null>(null);
   protected readonly showPassword = signal(false);
+  protected readonly fotoFile = signal<File | null>(null);
+  protected readonly fotoPreviewUrl = signal<string | null>(null);
+  protected readonly fotoClientError = signal<string | null>(null);
+
+  private fotoObjectUrl: string | null = null;
 
   protected readonly nombreError = computed(() => firstFieldError(this.serverError(), 'nombre'));
   protected readonly apellidoError = computed(() =>
@@ -50,9 +71,60 @@ export class RegisterComponent {
   protected readonly passwordError = computed(() =>
     firstFieldError(this.serverError(), 'password'),
   );
+  protected readonly fotoError = computed(() => firstFieldError(this.serverError(), 'foto'));
+
+  ngOnDestroy(): void {
+    this.revokeFotoPreview();
+  }
+
+  private revokeFotoPreview(): void {
+    if (this.fotoObjectUrl) {
+      URL.revokeObjectURL(this.fotoObjectUrl);
+      this.fotoObjectUrl = null;
+    }
+  }
 
   protected togglePassword(): void {
     this.showPassword.update((v) => !v);
+  }
+
+  protected onFotoSelected(event: Event): void {
+    this.fotoClientError.set(null);
+    this.serverError.set(null);
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+
+    this.revokeFotoPreview();
+    this.fotoPreviewUrl.set(null);
+    this.fotoFile.set(null);
+
+    if (!file) {
+      return;
+    }
+
+    if (!ACCEPTED_FOTO_MIME.has(file.type)) {
+      this.fotoClientError.set('Formato no válido. Usa JPEG, PNG, WebP o GIF.');
+      input.value = '';
+      return;
+    }
+
+    if (file.size > MAX_FOTO_BYTES) {
+      this.fotoClientError.set('La imagen no puede superar 2 MB.');
+      input.value = '';
+      return;
+    }
+
+    this.fotoFile.set(file);
+    this.fotoObjectUrl = URL.createObjectURL(file);
+    this.fotoPreviewUrl.set(this.fotoObjectUrl);
+  }
+
+  protected clearFoto(fotoInput: HTMLInputElement): void {
+    fotoInput.value = '';
+    this.fotoClientError.set(null);
+    this.revokeFotoPreview();
+    this.fotoPreviewUrl.set(null);
+    this.fotoFile.set(null);
   }
 
   protected async onSubmit(): Promise<void> {
@@ -75,6 +147,7 @@ export class RegisterComponent {
         password: value.password,
         password_confirmation: value.password_confirmation,
         device_name: navigator.userAgent.slice(0, 100),
+        foto: this.fotoFile() ?? undefined,
       });
 
       void this.router.navigateByUrl('/feed');

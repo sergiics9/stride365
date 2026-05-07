@@ -7,8 +7,10 @@ import {
   AuthResponse,
   LoginRequest,
   MeResponse,
+  Membership,
   RegisterRequest,
   RoleName,
+  UpdateProfilePayload,
   User,
 } from '../../shared/models';
 import { TokenStorageService } from './token-storage.service';
@@ -20,20 +22,38 @@ export class AuthService {
 
   private readonly _user = signal<User | null>(null);
   private readonly _roles = signal<RoleName[]>([]);
-  private readonly _subscribed = signal<boolean>(false);
+  private readonly _memberships = signal<Membership[]>([]);
   private readonly _loading = signal<boolean>(false);
 
   readonly user = this._user.asReadonly();
   readonly roles = this._roles.asReadonly();
-  readonly subscribed = this._subscribed.asReadonly();
+  readonly memberships = this._memberships.asReadonly();
   readonly loading = this._loading.asReadonly();
 
   readonly isAuthenticated = computed(() => this.tokenStorage.token() !== null);
 
   readonly isSuperAdmin = computed(() => this._roles().includes('super_admin'));
-  readonly isAdminClub = computed(() => this._roles().includes('admin_club'));
-  readonly isGuia = computed(() => this._roles().includes('guia'));
-  readonly isSocio = computed(() => this._roles().includes('socio'));
+
+  readonly activeMemberships = computed(() =>
+    this._memberships().filter((m) => m.status === 'active' || m.status === 'grace'),
+  );
+
+  readonly adminMembership = computed<Membership | null>(
+    () => this._memberships().find((m) => m.role === 'admin_club') ?? null,
+  );
+
+  readonly socioMemberships = computed<Membership[]>(() =>
+    this._memberships().filter((m) => m.role === 'socio'),
+  );
+
+  readonly hasAnyMembership = computed(() => this.activeMemberships().length > 0);
+
+  /**
+   * Listado de clubes, ficha pública y solicitud de club están disponibles
+   * para cualquier usuario autenticado. Las rutas internas (socios, actividades…)
+   * siguen protegidas por membresía en el router y en la API.
+   */
+  readonly canAccessClubes = computed(() => this.isAuthenticated());
 
   readonly fullName = computed(() => {
     const u = this._user();
@@ -45,8 +65,39 @@ export class AuthService {
     return this._roles().includes(role);
   }
 
-  hasAnyRole(roles: RoleName[]): boolean {
-    return roles.some((r) => this._roles().includes(r));
+  isAdminOf(clubId: number): boolean {
+    return this._memberships().some(
+      (m) =>
+        m.club_id === clubId &&
+        m.role === 'admin_club' &&
+        (m.status === 'active' || m.status === 'grace'),
+    );
+  }
+
+  isSocioOf(clubId: number): boolean {
+    return this._memberships().some(
+      (m) =>
+        m.club_id === clubId &&
+        m.role === 'socio' &&
+        (m.status === 'active' || m.status === 'grace'),
+    );
+  }
+
+  isGuideOf(clubId: number): boolean {
+    return this._memberships().some(
+      (m) =>
+        m.club_id === clubId &&
+        m.role === 'socio' &&
+        m.is_guide &&
+        (m.status === 'active' || m.status === 'grace'),
+    );
+  }
+
+  membershipFor(kind: 'club' | 'socio', clubId: number): Membership | null {
+    const role = kind === 'club' ? 'admin_club' : 'socio';
+    return (
+      this._memberships().find((m) => m.role === role && m.club_id === clubId) ?? null
+    );
   }
 
   async login(payload: LoginRequest): Promise<AuthResponse> {
@@ -66,8 +117,24 @@ export class AuthService {
   async register(payload: RegisterRequest): Promise<AuthResponse> {
     this._loading.set(true);
     try {
+      const fd = new FormData();
+      fd.append('nombre', payload.nombre);
+      fd.append('apellido', payload.apellido);
+      fd.append('email', payload.email);
+      fd.append('password', payload.password);
+      fd.append('password_confirmation', payload.password_confirmation);
+      if (payload.telefono != null && payload.telefono !== '') {
+        fd.append('telefono', payload.telefono);
+      }
+      if (payload.device_name) {
+        fd.append('device_name', payload.device_name);
+      }
+      if (payload.foto) {
+        fd.append('foto', payload.foto, payload.foto.name);
+      }
+
       const response = await firstValueFrom(
-        this.http.post<AuthResponse>(`${environment.apiUrl}/auth/register`, payload),
+        this.http.post<AuthResponse>(`${environment.apiUrl}/auth/register`, fd),
       );
       this.handleAuthResponse(response);
       await this.me();
@@ -99,7 +166,7 @@ export class AuthService {
       );
       this._user.set(response.user);
       this._roles.set(response.roles);
-      this._subscribed.set(response.subscribed);
+      this._memberships.set(response.memberships ?? []);
       return response;
     } catch {
       this.clearSession();
@@ -107,15 +174,43 @@ export class AuthService {
     }
   }
 
-  setSubscribed(value: boolean): void {
-    this._subscribed.set(value);
+  async updateProfile(payload: UpdateProfilePayload): Promise<MeResponse> {
+    const fd = new FormData();
+    if (payload.foto) {
+      fd.append('foto', payload.foto, payload.foto.name);
+    }
+    const response = await firstValueFrom(
+      this.http.patch<MeResponse>(`${environment.apiUrl}/auth/me`, fd),
+    );
+    this._user.set(response.user);
+    this._roles.set(response.roles);
+    this._memberships.set(response.memberships ?? []);
+    return response;
+  }
+
+  setMemberships(memberships: Membership[]): void {
+    this._memberships.set(memberships);
+  }
+
+  upsertMembership(membership: Membership): void {
+    this._memberships.update((list) => {
+      const idx = list.findIndex(
+        (m) => m.role === membership.role && m.club_id === membership.club_id,
+      );
+      if (idx >= 0) {
+        const next = [...list];
+        next[idx] = membership;
+        return next;
+      }
+      return [...list, membership];
+    });
   }
 
   clearSession(): void {
     this.tokenStorage.clear();
     this._user.set(null);
     this._roles.set([]);
-    this._subscribed.set(false);
+    this._memberships.set([]);
   }
 
   private handleAuthResponse(response: AuthResponse): void {

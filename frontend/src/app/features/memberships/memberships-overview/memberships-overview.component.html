@@ -1,0 +1,276 @@
+<div class="container" style="max-width: 920px">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h1 class="h3 fw-semibold mb-1">Mis suscripciones</h1>
+      <p class="text-muted small mb-0">
+        Gestiona tu cuota como administrador de club y tus afiliaciones de socio.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="btn btn-outline-secondary btn-sm"
+      (click)="reload()"
+      [disabled]="loading()"
+    >
+      @if (loading()) {
+        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+      }
+      Actualizar
+    </button>
+  </div>
+
+  @if (notice()) {
+    <div class="alert alert-warning small" role="status">{{ notice() }}</div>
+  }
+
+  @if (checkoutSuccess(); as s) {
+    <div class="alert alert-success d-flex align-items-center" role="status">
+      <span class="me-2 fs-5" aria-hidden="true">✓</span>
+      <div>
+        <strong>¡Pago completado!</strong>
+        @if (s.kind === 'club') {
+          Tu solicitud de club ha quedado registrada y un super administrador la revisará en breve.
+        } @else {
+          Tu cuota anual de socio está activa. Hemos enviado la factura en PDF a tu email.
+        }
+      </div>
+    </div>
+  }
+
+  @if (error(); as err) {
+    <div class="alert alert-danger small" role="alert">
+      No se pudieron cargar las suscripciones: {{ err.message }}
+    </div>
+  }
+
+  @if (auth.isSuperAdmin()) {
+    <div class="alert alert-info small" role="status">
+      Como super administrador no necesitas suscripción para acceder al módulo Clubes.
+    </div>
+  }
+
+  <!-- Mi club -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h5 mb-0">Mi club (admin)</h2>
+        @if (adminMembership(); as a) {
+          @if (statusBadge(a); as b) {
+            <span class="badge rounded-pill" [class]="b.cls">{{ b.label }}</span>
+          }
+        }
+      </div>
+
+      @if (adminMembership(); as a) {
+        <dl class="row mb-3">
+          <dt class="col-sm-4 text-muted">Club</dt>
+          <dd class="col-sm-8">{{ a.club?.nombre ?? '—' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Estado de la solicitud</dt>
+          <dd class="col-sm-8">{{ a.club?.application_status ?? '—' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Plan</dt>
+          <dd class="col-sm-8">{{ pricing.club.label }} — {{ pricing.club.amountLabel }}</dd>
+
+          <dt class="col-sm-4 text-muted">{{ nextRenewalLabel(a) }}</dt>
+          <dd class="col-sm-8">
+            {{ nextRenewal(a) ? (nextRenewal(a) | date: 'longDate') : '—' }}
+          </dd>
+        </dl>
+
+        @if (canCancel(a)) {
+          <button
+            type="button"
+            class="btn btn-outline-danger me-2"
+            [disabled]="action() === 'cancel' && isActing(a.kind, a.club_id)"
+            (click)="cancelMembership(a)"
+          >
+            @if (action() === 'cancel' && isActing(a.kind, a.club_id)) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            }
+            Cancelar suscripción del club
+          </button>
+        } @else if (canResume(a)) {
+          <button
+            type="button"
+            class="btn btn-success me-2"
+            [disabled]="action() === 'resume' && isActing(a.kind, a.club_id)"
+            (click)="resumeMembership(a)"
+          >
+            @if (action() === 'resume' && isActing(a.kind, a.club_id)) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            }
+            Reanudar suscripción
+          </button>
+        }
+
+        <a class="btn btn-outline-secondary" [routerLink]="['/clubes', a.club_id]">Ir al club</a>
+      } @else {
+        <p class="text-muted small mb-3">
+          Aún no eres administrador de ningún club. {{ pricing.club.description }}
+          La cuota anual es de {{ pricing.club.amountLabel }}.
+        </p>
+        <a class="btn btn-primary" routerLink="/clubes/nuevo">Solicitar mi club</a>
+      }
+    </div>
+  </div>
+
+  <!-- Afiliaciones de socio -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h5 mb-0">Afiliaciones de socio</h2>
+        <a class="btn btn-outline-primary btn-sm" routerLink="/clubes">Explorar clubes</a>
+      </div>
+
+      @if (socioMemberships().length === 0) {
+        <p class="text-muted small mb-0">
+          Aún no eres socio de ningún club. Suscríbete a uno para acceder a sus actividades,
+          inscripciones y comunicados. Cuota anual: {{ pricing.socio.amountLabel }}.
+        </p>
+      } @else {
+        <div class="row g-3">
+          @for (m of socioMemberships(); track m.id) {
+            <div class="col-12">
+              <div class="border rounded p-3">
+                <div class="d-flex align-items-start justify-content-between mb-2 gap-2">
+                  <div>
+                    <div class="fw-semibold">{{ m.club?.nombre ?? '—' }}</div>
+                    <div class="text-muted small">
+                      {{ m.is_guide ? 'Socio · Guía' : 'Socio' }}
+                    </div>
+                  </div>
+                  @if (statusBadge(m); as b) {
+                    <span class="badge rounded-pill" [class]="b.cls">{{ b.label }}</span>
+                  }
+                </div>
+
+                <dl class="row mb-2 small">
+                  <dt class="col-sm-4 text-muted">Plan</dt>
+                  <dd class="col-sm-8">
+                    {{ pricing.socio.label }} — {{ pricing.socio.amountLabel }}
+                  </dd>
+                  <dt class="col-sm-4 text-muted">{{ nextRenewalLabel(m) }}</dt>
+                  <dd class="col-sm-8">
+                    {{ nextRenewal(m) ? (nextRenewal(m) | date: 'longDate') : '—' }}
+                  </dd>
+                </dl>
+
+                <div class="d-flex flex-wrap gap-2">
+                  @if (canCancel(m)) {
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-danger"
+                      [disabled]="action() === 'cancel' && isActing(m.kind, m.club_id)"
+                      (click)="cancelMembership(m)"
+                    >
+                      @if (action() === 'cancel' && isActing(m.kind, m.club_id)) {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                      }
+                      Cancelar
+                    </button>
+                  } @else if (canResume(m)) {
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-success"
+                      [disabled]="action() === 'resume' && isActing(m.kind, m.club_id)"
+                      (click)="resumeMembership(m)"
+                    >
+                      @if (action() === 'resume' && isActing(m.kind, m.club_id)) {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                      }
+                      Reanudar
+                    </button>
+                  }
+                  <a class="btn btn-sm btn-outline-secondary" [routerLink]="['/clubes', m.club_id]">
+                    Ir al club
+                  </a>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Facturas -->
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h5 mb-0">Facturas</h2>
+        <button
+          type="button"
+          class="btn btn-outline-secondary btn-sm"
+          (click)="reloadInvoices()"
+          [disabled]="invoicesLoading()"
+        >
+          @if (invoicesLoading()) {
+            <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+          }
+          Actualizar
+        </button>
+      </div>
+
+      @if (invoicesError(); as ie) {
+        <div class="alert alert-danger small" role="alert">
+          No se pudieron cargar las facturas: {{ ie.message }}
+        </div>
+      }
+
+      @if (invoicesLoading() && invoices().length === 0) {
+        <div class="text-center text-muted py-3">
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          Cargando facturas…
+        </div>
+      } @else if (invoices().length === 0) {
+        <p class="text-muted small mb-0">No tienes facturas aún.</p>
+      } @else {
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead>
+              <tr>
+                <th scope="col">Número</th>
+                <th scope="col">Concepto</th>
+                <th scope="col">Fecha</th>
+                <th scope="col" class="text-end">Total</th>
+                <th scope="col" class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (invoice of invoices(); track invoice.id) {
+                <tr>
+                  <td>{{ invoice.number ?? invoice.id }}</td>
+                  <td class="small text-muted">
+                    @if (invoice.subscription?.kind === 'club') {
+                      Cuota de club
+                    } @else if (invoice.subscription?.kind === 'socio') {
+                      Cuota de socio
+                    } @else {
+                      —
+                    }
+                  </td>
+                  <td>{{ invoice.date ? (invoice.date | date: 'medium') : '—' }}</td>
+                  <td class="text-end">{{ invoice.total }}</td>
+                  <td class="text-end">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-primary"
+                      (click)="download(invoice)"
+                      [disabled]="downloadingInvoice() === invoice.id"
+                    >
+                      @if (downloadingInvoice() === invoice.id) {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                      }
+                      Descargar
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</div>

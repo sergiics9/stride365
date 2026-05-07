@@ -117,6 +117,40 @@
           }
         </div>
 
+        <div class="col-12">
+          <label for="foto" class="form-label">Foto de perfil <span class="text-muted small">(opcional)</span></label>
+          <input
+            #fotoInput
+            id="foto"
+            type="file"
+            class="form-control"
+            accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
+            (change)="onFotoSelected($event)"
+          />
+          <div class="form-text">JPEG, PNG, WebP o GIF, máximo 2 MB.</div>
+          @if (fotoClientError(); as ce) {
+            <div class="invalid-feedback d-block">{{ ce }}</div>
+          }
+          @if (fotoError()) {
+            <div class="invalid-feedback d-block">{{ fotoError() }}</div>
+          }
+          @if (fotoPreviewUrl(); as src) {
+            <div class="d-flex align-items-center gap-2 mt-2">
+              <img
+                [src]="src"
+                width="64"
+                height="64"
+                class="rounded-circle border"
+                style="object-fit: cover"
+                alt="Vista previa de la foto"
+              />
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearFoto(fotoInput)">
+                Quitar foto
+              </button>
+            </div>
+          }
+        </div>
+
         <div class="col-md-6">
           <div class="d-flex justify-content-between align-items-center">
             <label for="password" class="form-label">Contraseña</label>
