@@ -1,4 +1,3 @@
-import { Club } from './club.model';
 import { Role } from './role.model';
 
 export type EstadoUser = 'activo' | 'baja' | 'suspendido';
@@ -6,7 +5,6 @@ export type Sexo = 'M' | 'F' | 'O';
 
 export interface User {
   id: number;
-  club_id: number | null;
   nombre: string | null;
   apellido: string | null;
   fecha_nacimiento: string | null;
@@ -21,5 +19,4 @@ export interface User {
   created_at?: string;
   updated_at?: string;
   roles?: Role[];
-  club?: Club | null;
 }

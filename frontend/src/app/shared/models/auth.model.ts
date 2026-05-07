@@ -1,3 +1,4 @@
+import { Membership } from './membership.model';
 import { RoleName } from './role.model';
 import { User } from './user.model';
 
@@ -8,7 +9,6 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  club_id?: number | null;
   nombre: string;
   apellido: string;
   email: string;
@@ -16,6 +16,11 @@ export interface RegisterRequest {
   password: string;
   password_confirmation: string;
   device_name?: string;
+  foto?: File | null;
+}
+
+export interface UpdateProfilePayload {
+  foto?: File | null;
 }
 
 export interface AuthResponse {
@@ -27,5 +32,5 @@ export interface AuthResponse {
 export interface MeResponse {
   user: User;
   roles: RoleName[];
-  subscribed: boolean;
+  memberships: Membership[];
 }
