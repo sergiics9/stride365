@@ -8,7 +8,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureClubMembership
 {
-
     public function handle(Request $request, Closure $next, string $roles = 'admin,socio,guide'): Response
     {
         $user = $request->user();

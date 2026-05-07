@@ -5,10 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Actividad;
 use App\Models\PublicacionFeed;
+use App\Support\GpxTrackParser;
+use App\Support\TrackMetrics;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
 
 class FeedRecordingController extends Controller
 {
@@ -58,13 +59,16 @@ class FeedRecordingController extends Controller
 
         $validated = $request->validate([
             'coordinates' => ['required', 'array', 'min:1'],
-            'coordinates.*' => ['array', 'size:2'],
-            'coordinates.*.0' => ['numeric', 'between:-180,180'],
-            'coordinates.*.1' => ['numeric', 'between:-90,90'],
+            'coordinates.*' => ['array', 'min:2', 'max:5'],
+            'coordinates.*.0' => ['required', 'numeric', 'between:-180,180'],
+            'coordinates.*.1' => ['required', 'numeric', 'between:-90,90'],
+            'coordinates.*.2' => ['nullable', 'numeric'],
+            'coordinates.*.3' => ['nullable', 'numeric'],
+            'coordinates.*.4' => ['nullable', 'integer', 'min:1', 'max:280'],
         ]);
 
         $incoming = array_map(
-            static fn(array $p) => [(float) $p[0], (float) $p[1]],
+            fn (array $p) => $this->normalizeCoordinateRow($p),
             $validated['coordinates'],
         );
 
@@ -102,9 +106,28 @@ class FeedRecordingController extends Controller
 
         $coords = $actividad->track_geojson['coordinates'] ?? [];
         $distancia = $this->lineLengthKm($coords);
+        $now = now();
 
-        DB::transaction(function () use ($actividad, $validated, $request, $distancia) {
-            $now = now();
+        $dur = TrackMetrics::durationSecondsFromCoords($coords);
+        if ($dur === null && $actividad->fecha_inicio) {
+            $dur = max(0, (int) $actividad->fecha_inicio->diffInSeconds($now));
+        }
+
+        $pace = TrackMetrics::paceSecondsPerKm($dur, $distancia);
+        $dplus = TrackMetrics::positiveElevationGainMFromCoords($coords);
+        $hr = TrackMetrics::heartRateStatsFromCoords($coords);
+
+        DB::transaction(function () use (
+            $actividad,
+            $validated,
+            $request,
+            $distancia,
+            $now,
+            $dur,
+            $pace,
+            $dplus,
+            $hr,
+        ) {
             $tituloFinal = $validated['titulo'] ?? $actividad->titulo;
             $descFinal = $validated['descripcion'] ?? $actividad->descripcion;
 
@@ -115,16 +138,20 @@ class FeedRecordingController extends Controller
                 'titulo' => $tituloFinal,
                 'descripcion' => $descFinal,
                 'distancia' => $distancia > 0 ? round($distancia, 2) : null,
+                'duracion_segundos' => $dur,
+                'ritmo_segundos_por_km' => $pace,
+                'desnivel_positivo_m' => $dplus,
+                'pulsaciones_media' => $hr['avg'],
+                'pulsaciones_max' => $hr['max'],
             ]);
 
-            $resumenParts = [];
-            if ($distancia > 0) {
-                $resumenParts[] = round($distancia, 2) . ' km';
-            }
-            $dur = $actividad->fecha_inicio?->diffInMinutes($now);
-            if ($dur !== null && $dur > 0) {
-                $resumenParts[] = $dur . ' min';
-            }
+            $resumenParts = $this->feedResumenParts(
+                $distancia,
+                $dur,
+                $dplus,
+                $pace,
+                $hr['avg'],
+            );
 
             PublicacionFeed::create([
                 'user_id' => $request->user()->id,
@@ -157,11 +184,12 @@ class FeedRecordingController extends Controller
         }
 
         try {
-            $geojson = $this->gpxStringToLineStringGeoJson($contents);
+            $parsed = GpxTrackParser::parse($contents);
         } catch (\Throwable $e) {
-            return response()->json(['message' => 'GPX inválido o sin track: ' . $e->getMessage()], 422);
+            return response()->json(['message' => 'GPX inválido o sin track: '.$e->getMessage()], 422);
         }
 
+        $geojson = $parsed['geojson'];
         $coords = $geojson['coordinates'] ?? [];
         if (count($coords) < 2) {
             return response()->json(['message' => 'El GPX no contiene suficientes puntos.'], 422);
@@ -171,28 +199,71 @@ class FeedRecordingController extends Controller
         $distancia = $this->lineLengthKm($coords);
         $titulo = $validated['titulo'] ?? 'Actividad importada';
 
+        $startedAt = $parsed['started_at'];
+        $finishedAt = $parsed['finished_at'];
+        $fechaInicio = $startedAt ?? now();
+        $fechaFin = $finishedAt ?? $fechaInicio;
+
+        $dur = null;
+        if ($startedAt && $finishedAt) {
+            $dur = max(0, (int) $startedAt->diffInSeconds($finishedAt));
+        }
+        if ($dur === null) {
+            $dur = TrackMetrics::durationSecondsFromCoords($coords);
+        }
+
+        $pace = TrackMetrics::paceSecondsPerKm($dur, $distancia);
+        $dplus = TrackMetrics::positiveElevationGainMFromCoords($coords);
+
+        $hrAvg = null;
+        $hrMax = null;
+        $hrs = $parsed['heart_rates'];
+        if ($hrs !== []) {
+            $hrAvg = (int) round(array_sum($hrs) / count($hrs));
+            $hrMax = max($hrs);
+        } else {
+            $hrStats = TrackMetrics::heartRateStatsFromCoords($coords);
+            $hrAvg = $hrStats['avg'];
+            $hrMax = $hrStats['max'];
+        }
+
         $actividad = null;
 
-        DB::transaction(function () use ($user, $titulo, $geojson, $distancia, &$actividad) {
+        DB::transaction(function () use (
+            $user,
+            $titulo,
+            $geojson,
+            $distancia,
+            $fechaInicio,
+            $fechaFin,
+            $dur,
+            $pace,
+            $dplus,
+            $hrAvg,
+            $hrMax,
+            &$actividad,
+        ) {
             $now = now();
             $actividad = Actividad::create([
                 'user_id' => $user->id,
                 'club_id' => null,
                 'titulo' => $titulo,
                 'descripcion' => null,
-                'fecha_inicio' => $now,
-                'fecha_fin' => $now,
+                'fecha_inicio' => $fechaInicio,
+                'fecha_fin' => $fechaFin,
                 'estado' => Actividad::ESTADO_FINALIZADA,
                 'modo_creacion' => Actividad::MODO_IMPORTADA,
                 'track_geojson' => $geojson,
                 'distancia' => $distancia > 0 ? round($distancia, 2) : null,
+                'duracion_segundos' => $dur,
+                'ritmo_segundos_por_km' => $pace,
+                'desnivel_positivo_m' => $dplus,
+                'pulsaciones_media' => $hrAvg,
+                'pulsaciones_max' => $hrMax,
                 'finalizada_at' => $now,
             ]);
 
-            $resumenParts = [];
-            if ($distancia > 0) {
-                $resumenParts[] = round($distancia, 2) . ' km';
-            }
+            $resumenParts = $this->feedResumenParts($distancia, $dur, $dplus, $pace, $hrAvg);
 
             PublicacionFeed::create([
                 'user_id' => $user->id,
@@ -210,6 +281,85 @@ class FeedRecordingController extends Controller
             'message' => 'Actividad importada y publicada en el feed.',
             'actividad' => $actividad?->fresh(),
         ], 201);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function feedResumenParts(
+        float $distanciaKm,
+        ?int $duracionSegundos,
+        ?int $desnivelM,
+        ?int $ritmoSegPorKm,
+        ?int $pulsacionesMedia,
+    ): array {
+        $parts = [];
+        if ($distanciaKm > 0) {
+            $parts[] = round($distanciaKm, 2).' km';
+        }
+        if ($duracionSegundos !== null && $duracionSegundos > 0) {
+            $parts[] = $this->formatDurationMinutes($duracionSegundos);
+        }
+        if ($ritmoSegPorKm !== null && $ritmoSegPorKm > 0) {
+            $parts[] = $this->formatPace($ritmoSegPorKm).'/km';
+        }
+        if ($desnivelM !== null) {
+            $parts[] = '+'.$desnivelM.' m';
+        }
+        if ($pulsacionesMedia !== null && $pulsacionesMedia > 0) {
+            $parts[] = $pulsacionesMedia.' lpm media';
+        }
+
+        return $parts;
+    }
+
+    private function formatDurationMinutes(int $seconds): string
+    {
+        $h = intdiv($seconds, 3600);
+        $m = intdiv($seconds % 3600, 60);
+        if ($h > 0) {
+            return $h.' h '.$m.' min';
+        }
+
+        return $m.' min';
+    }
+
+    private function formatPace(int $secPerKm): string
+    {
+        $m = intdiv($secPerKm, 60);
+        $s = $secPerKm % 60;
+
+        return sprintf('%d:%02d', $m, $s);
+    }
+
+    /**
+     * @param  list<float|int|null>  $p
+     * @return list<float|int>
+     */
+    private function normalizeCoordinateRow(array $p): array
+    {
+        $row = [(float) $p[0], (float) $p[1]];
+        if (! array_key_exists(2, $p) || $p[2] === null) {
+            return $row;
+        }
+        if (! array_key_exists(3, $p) || $p[3] === null) {
+            $v2 = (float) $p[2];
+            if ($v2 > 1_000_000_000) {
+                $row[] = (int) $v2;
+
+                return $row;
+            }
+            $row[] = $v2;
+
+            return $row;
+        }
+        $row[] = (float) $p[2];
+        $row[] = (int) $p[3];
+        if (array_key_exists(4, $p) && $p[4] !== null) {
+            $row[] = (int) $p[4];
+        }
+
+        return $row;
     }
 
     private function personalRecordingOrFail(Request $request, int $id): Actividad
@@ -248,46 +398,5 @@ class FeedRecordingController extends Controller
         $a = sin($dLat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon / 2) ** 2;
 
         return 2 * $r * asin(min(1, sqrt($a)));
-    }
-
-    /**
-     * @return array{type: string, coordinates: list<list<float>>}
-     */
-    private function gpxStringToLineStringGeoJson(string $xml): array
-    {
-        libxml_use_internal_errors(true);
-        $sx = simplexml_load_string($xml);
-        if ($sx === false) {
-            throw new \InvalidArgumentException('XML inválido');
-        }
-
-        $sx->registerXPathNamespace('gpx', 'http://www.topografix.com/GPX/1/1');
-        $points = $sx->xpath('//*[local-name()="trkpt"]');
-        if (empty($points)) {
-            $points = $sx->xpath('//gpx:trkpt');
-        }
-
-        $coordinates = [];
-        foreach ($points as $pt) {
-            if (! ($pt instanceof \SimpleXMLElement)) {
-                continue;
-            }
-            $attrs = $pt->attributes();
-            $lat = isset($attrs['lat']) ? (float) $attrs['lat'] : null;
-            $lon = isset($attrs['lon']) ? (float) $attrs['lon'] : null;
-            if ($lat === null || $lon === null) {
-                continue;
-            }
-            $coordinates[] = [$lon, $lat];
-        }
-
-        if (count($coordinates) < 2) {
-            throw new \InvalidArgumentException('No se encontraron puntos trkpt');
-        }
-
-        return [
-            'type' => 'LineString',
-            'coordinates' => $coordinates,
-        ];
     }
 }

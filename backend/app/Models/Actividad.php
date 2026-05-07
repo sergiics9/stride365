@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\TrackMetrics;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,11 @@ class Actividad extends Model implements HasMedia
         'material_necesario',
         'modalidad',
         'distancia',
+        'desnivel_positivo_m',
+        'duracion_segundos',
+        'ritmo_segundos_por_km',
+        'pulsaciones_media',
+        'pulsaciones_max',
         'dificultad',
         'cupo_maximo',
         'costo',
@@ -44,6 +50,11 @@ class Actividad extends Model implements HasMedia
         'fecha_fin' => 'datetime',
         'finalizada_at' => 'datetime',
         'distancia' => 'decimal:2',
+        'desnivel_positivo_m' => 'integer',
+        'duracion_segundos' => 'integer',
+        'ritmo_segundos_por_km' => 'integer',
+        'pulsaciones_media' => 'integer',
+        'pulsaciones_max' => 'integer',
         'costo' => 'decimal:2',
         'track_geojson' => 'array',
         'publicada_en_feed' => 'boolean',
@@ -115,9 +126,24 @@ class Actividad extends Model implements HasMedia
     }
 
     /**
-     * @return list<array{0: float|int, 1: float|int}>
+     * Desnivel positivo (m) a partir de coordenadas con cota opcional (GeoJSON 2D/3D o extensiones usadas en el feed).
      */
-    private static function lineStringCoordinatesFromGeoJson(mixed $geo): array
+    public static function desnivelPositivoMDesdeTrackGeoJson(mixed $geo): ?int
+    {
+        $raw = self::lineStringRawCoordinatesFromGeoJson($geo);
+        if (count($raw) < 2) {
+            return null;
+        }
+
+        $d = TrackMetrics::positiveElevationGainMFromCoords($raw);
+
+        return $d;
+    }
+
+    /**
+     * @return list<list<float|int>>
+     */
+    public static function lineStringRawCoordinatesFromGeoJson(mixed $geo): array
     {
         if (! is_array($geo)) {
             return [];
@@ -126,13 +152,13 @@ class Actividad extends Model implements HasMedia
         $type = $geo['type'] ?? null;
 
         if ($type === 'Feature') {
-            return self::lineStringCoordinatesFromGeoJson($geo['geometry'] ?? []);
+            return self::lineStringRawCoordinatesFromGeoJson($geo['geometry'] ?? []);
         }
 
         if ($type === 'FeatureCollection') {
             $out = [];
             foreach ($geo['features'] ?? [] as $feature) {
-                foreach (self::lineStringCoordinatesFromGeoJson($feature) as $pair) {
+                foreach (self::lineStringRawCoordinatesFromGeoJson($feature) as $pair) {
                     $out[] = $pair;
                 }
             }
@@ -162,6 +188,30 @@ class Actividad extends Model implements HasMedia
         }
 
         return [];
+    }
+
+    /**
+     * @return list<array{0: float|int, 1: float|int}>
+     */
+    private static function lineStringCoordinatesFromGeoJson(mixed $geo): array
+    {
+        return self::lngLatPairsFromRaw(self::lineStringRawCoordinatesFromGeoJson($geo));
+    }
+
+    /**
+     * @param  list<list<float|int>>  $raw
+     * @return list<array{0: float, 1: float}>
+     */
+    private static function lngLatPairsFromRaw(array $raw): array
+    {
+        $out = [];
+        foreach ($raw as $pair) {
+            if (count($pair) >= 2) {
+                $out[] = [(float) $pair[0], (float) $pair[1]];
+            }
+        }
+
+        return $out;
     }
 
     private static function haversineKm(float $lng1, float $lat1, float $lng2, float $lat2): float

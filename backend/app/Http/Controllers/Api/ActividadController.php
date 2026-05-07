@@ -46,6 +46,7 @@ class ActividadController extends Controller
 
         if (array_key_exists('track_geojson', $data)) {
             $data['distancia'] = Actividad::distanciaKmDesdeTrackGeoJson($data['track_geojson']);
+            $data['desnivel_positivo_m'] = Actividad::desnivelPositivoMDesdeTrackGeoJson($data['track_geojson']);
         }
 
         $actividad = DB::transaction(function () use ($data, $guiaIds, $club) {
@@ -85,6 +86,7 @@ class ActividadController extends Controller
 
         if (array_key_exists('track_geojson', $data)) {
             $data['distancia'] = Actividad::distanciaKmDesdeTrackGeoJson($data['track_geojson']);
+            $data['desnivel_positivo_m'] = Actividad::desnivelPositivoMDesdeTrackGeoJson($data['track_geojson']);
         }
 
         DB::transaction(function () use ($actividad, $data, $guiaIds, $club) {
@@ -116,7 +118,6 @@ class ActividadController extends Controller
         ]);
     }
 
-
     public function finish(Request $request, Club $club, Actividad $actividad): JsonResponse
     {
         $this->authorizeManage($request, $club);
@@ -146,7 +147,6 @@ class ActividadController extends Controller
         ]);
     }
 
-
     private function authorizeRead(Request $request, Club $club): void
     {
         $user = $request->user();
@@ -157,7 +157,6 @@ class ActividadController extends Controller
             || $user->isSocioOfClub($club->id);
         abort_unless($allowed, 403);
     }
-
 
     private function authorizeManage(Request $request, Club $club): void
     {

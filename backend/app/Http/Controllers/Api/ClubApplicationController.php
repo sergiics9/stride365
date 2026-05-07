@@ -13,7 +13,6 @@ use Illuminate\Validation\ValidationException;
 
 class ClubApplicationController extends Controller
 {
-
     public function index(Request $request): JsonResponse
     {
         abort_unless($request->user()->hasRole('super_admin'), 403);
@@ -30,7 +29,6 @@ class ClubApplicationController extends Controller
 
         return response()->json($query->paginate(20));
     }
-
 
     public function store(StoreClubApplicationRequest $request): JsonResponse
     {
@@ -55,7 +53,7 @@ class ClubApplicationController extends Controller
 
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store('clubes/logos', 'public');
-            $data['logo_url'] = $request->getSchemeAndHttpHost() . '/storage/' . $path;
+            $data['logo_url'] = $request->getSchemeAndHttpHost().'/storage/'.$path;
         }
 
         $club = Club::create($data);
@@ -155,7 +153,7 @@ class ClubApplicationController extends Controller
                 $membership->update([
                     'status' => ClubUser::STATUS_INACTIVE,
                     'left_at' => now()->toDateString(),
-                    'left_reason' => 'Solicitud rechazada: ' . $validated['reason'],
+                    'left_reason' => 'Solicitud rechazada: '.$validated['reason'],
                 ]);
             }
         }
@@ -170,12 +168,12 @@ class ClubApplicationController extends Controller
     {
         $base = Str::slug($nombre);
         if ($base === '') {
-            $base = 'club-' . Str::random(6);
+            $base = 'club-'.Str::random(6);
         }
         $slug = $base;
         $i = 2;
         while (Club::where('slug', $slug)->exists()) {
-            $slug = $base . '-' . $i++;
+            $slug = $base.'-'.$i++;
         }
 
         return $slug;

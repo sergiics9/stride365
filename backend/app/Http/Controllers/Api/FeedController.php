@@ -14,7 +14,7 @@ class FeedController extends Controller
         $query = PublicacionFeed::query()
             ->with([
                 'user:id,nombre,apellido,email',
-                'actividad:id,club_id,user_id,titulo,fecha_inicio,fecha_fin,distancia,dificultad,modalidad,track_geojson,modo_creacion',
+                'actividad:id,club_id,user_id,titulo,fecha_inicio,fecha_fin,distancia,desnivel_positivo_m,duracion_segundos,ritmo_segundos_por_km,pulsaciones_media,pulsaciones_max,dificultad,modalidad,track_geojson,modo_creacion',
                 'actividad.club:id,nombre,slug,logo_url',
                 'media',
             ])
@@ -51,7 +51,7 @@ class FeedController extends Controller
         return response()->json(
             $publicacion->load([
                 'user:id,nombre,apellido,email',
-                'actividad:id,club_id,user_id,titulo,descripcion,fecha_inicio,fecha_fin,distancia,dificultad,modalidad,track_geojson,modo_creacion',
+                'actividad:id,club_id,user_id,titulo,descripcion,fecha_inicio,fecha_fin,distancia,desnivel_positivo_m,duracion_segundos,ritmo_segundos_por_km,pulsaciones_media,pulsaciones_max,dificultad,modalidad,track_geojson,modo_creacion',
                 'actividad.club:id,nombre,slug,logo_url',
                 'media',
             ])
