@@ -1,4 +1,6 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom shadow-sm">
+<a class="visually-hidden-focusable skip-link" href="#main-content">Saltar al contenido principal</a>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom shadow-sm" aria-label="Navegación principal">
   <div class="container-fluid">
     <a class="navbar-brand fw-semibold" routerLink="/feed">TFG Clubes</a>
 
@@ -21,23 +23,14 @@
         </li>
 
         <li class="nav-item">
-          <a
-            class="nav-link d-inline-flex align-items-center gap-1"
-            routerLink="/clubes"
-            routerLinkActive="active"
-            [attr.title]="
-              canAccessClubes()
-                ? null
-                : 'Necesitas una suscripción activa para acceder al módulo Clubes'
-            "
-          >
-            Clubes
-            @if (!canAccessClubes()) {
-              <span aria-hidden="true">&#128274;</span>
-              <span class="visually-hidden">Requiere suscripción</span>
-            }
-          </a>
+          <a class="nav-link" routerLink="/clubes" routerLinkActive="active">Clubes</a>
         </li>
+
+        @if (auth.isSuperAdmin()) {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/super-admin" routerLinkActive="active">Admin</a>
+          </li>
+        }
       </ul>
 
       <ul class="navbar-nav align-items-lg-center">
@@ -60,8 +53,8 @@
               </a>
             </li>
             <li>
-              <a class="dropdown-item" routerLink="/subscription">
-                <span class="me-2">&#128179;</span>Mi suscripción
+              <a class="dropdown-item" routerLink="/memberships">
+                <span class="me-2">&#128179;</span>Mis suscripciones
               </a>
             </li>
             <li><hr class="dropdown-divider" /></li>
@@ -77,6 +70,6 @@
   </div>
 </nav>
 
-<main class="container-fluid py-4">
+<main id="main-content" class="container-fluid py-4" tabindex="-1">
   <router-outlet />
 </main>
