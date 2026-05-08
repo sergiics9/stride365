@@ -1,0 +1,129 @@
+<div class="container" style="max-width: 720px">
+  <div class="mb-4">
+    <h1 class="h3 fw-semibold mb-1">Solicitar mi club</h1>
+    <p class="text-muted small mb-0">
+      Rellena los datos básicos del club. Después abonarás la
+      <strong>cuota anual de {{ pricing.club.amountLabel }}</strong> y un super administrador
+      revisará tu solicitud para activar el club.
+    </p>
+  </div>
+
+  @if (hasAdminMembership()) {
+    <div class="alert alert-warning small" role="status">
+      Ya administras un club. Solo puedes tener un club activo a la vez.
+      <a class="alert-link" routerLink="/memberships">Ver mi suscripción</a>.
+    </div>
+  } @else {
+    <form class="card shadow-sm border-0" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="card-body p-4">
+        <div class="mb-3">
+          <label for="nombre" class="form-label">Nombre del club *</label>
+          <input
+            id="nombre"
+            type="text"
+            class="form-control"
+            formControlName="nombre"
+            autocomplete="organization"
+            required
+          />
+          @if (fieldError('nombre'); as err) {
+            <div class="invalid-feedback d-block">{{ err }}</div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label for="descripcion" class="form-label">Descripción</label>
+          <textarea
+            id="descripcion"
+            class="form-control"
+            rows="4"
+            formControlName="descripcion"
+            placeholder="Tipo de actividades, ubicación, contacto…"
+          ></textarea>
+          @if (fieldError('descripcion'); as err) {
+            <div class="invalid-feedback d-block">{{ err }}</div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label for="logo" class="form-label">Logo del club</label>
+          <input
+            #logoInput
+            id="logo"
+            type="file"
+            class="form-control"
+            accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
+            (change)="onLogoSelected($event)"
+          />
+          <div class="form-text">Imagen opcional (JPEG, PNG, WebP o GIF, máx. 2 MB).</div>
+          @if (logoFieldError(); as le) {
+            <div class="invalid-feedback d-block">{{ le }}</div>
+          }
+          @if (logoPreviewUrl(); as src) {
+            <div class="d-flex align-items-start gap-2 mt-2">
+              <img
+                [src]="src"
+                height="72"
+                width="72"
+                class="rounded border"
+                style="object-fit: cover"
+                alt="Vista previa del logo"
+              />
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearLogo(logoInput)">
+                Quitar imagen
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="direccion" class="form-label">Dirección</label>
+            <input
+              id="direccion"
+              type="text"
+              class="form-control"
+              formControlName="direccion"
+            />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="telefono" class="form-label">Teléfono</label>
+            <input
+              id="telefono"
+              type="tel"
+              class="form-control"
+              formControlName="telefono"
+            />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="email" class="form-label">Email de contacto</label>
+          <input
+            id="email"
+            type="email"
+            class="form-control"
+            formControlName="email"
+          />
+          @if (fieldError('email'); as err) {
+            <div class="invalid-feedback d-block">{{ err }}</div>
+          }
+        </div>
+
+        @if (serverError(); as err) {
+          <div class="alert alert-danger small" role="alert">{{ err }}</div>
+        }
+
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn btn-primary" [disabled]="submitting()">
+            @if (submitting()) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            }
+            Continuar al pago ({{ pricing.club.amountLabel }})
+          </button>
+          <a class="btn btn-outline-secondary" routerLink="/clubes">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  }
+</div>
