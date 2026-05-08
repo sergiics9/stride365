@@ -1,0 +1,87 @@
+<div>
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <h2 class="h5 mb-0">Comunicados</h2>
+    @if (canManage()) {
+      <button class="btn btn-sm btn-primary" (click)="toggleCreate()">
+        {{ showCreate() ? 'Cerrar' : 'Nuevo comunicado' }}
+      </button>
+    }
+  </div>
+
+  @if (showCreate() && canManage()) {
+    <form class="card border-0 shadow-sm mb-3" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="card-body p-3">
+        <div class="mb-2">
+          <label class="form-label">Título *</label>
+          <input class="form-control" formControlName="titulo" required />
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Contenido *</label>
+          <textarea class="form-control" rows="4" formControlName="contenido" required></textarea>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-sm btn-primary" [disabled]="saving()">
+            @if (saving()) {
+              <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+            }
+            Publicar
+          </button>
+          <button type="button" class="btn btn-sm btn-link" (click)="toggleCreate()">Cancelar</button>
+        </div>
+      </div>
+    </form>
+  }
+
+  @if (error(); as err) {
+    <div class="alert alert-danger small" role="alert">
+      No se pudieron cargar los comunicados: {{ err.message }}
+    </div>
+  }
+
+  @if (loading() && comunicados().length === 0) {
+    <div class="text-center text-muted py-4">
+      <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+      Cargando…
+    </div>
+  } @else if (comunicados().length === 0) {
+    <p class="text-muted">No hay comunicados todavía.</p>
+  } @else {
+    <ul class="list-group list-group-flush">
+      @for (com of comunicados(); track com.id) {
+        <li class="list-group-item px-0">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="flex-grow-1">
+              <div class="fw-semibold">{{ com.titulo }}</div>
+              <div class="small text-muted mb-2">
+                {{ com.fecha_publicacion | date: 'medium' }}
+                @if (com.user) {
+                  · {{ com.user.nombre }} {{ com.user.apellido }}
+                }
+              </div>
+              <p class="mb-0 small" style="white-space: pre-wrap">{{ com.contenido }}</p>
+            </div>
+            @if (canManage()) {
+              <button class="btn btn-sm btn-outline-danger" (click)="remove(com)">Eliminar</button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+
+    @if (totalPages() > 1) {
+      <nav aria-label="Paginación de comunicados" class="mt-3">
+        <ul class="pagination pagination-sm justify-content-center">
+          <li class="page-item" [class.disabled]="page() === 1">
+            <button class="page-link" (click)="goToPage(page() - 1)">Anterior</button>
+          </li>
+          <li class="page-item">
+            <span class="page-link">{{ page() }} / {{ totalPages() }}</span>
+          </li>
+          <li class="page-item" [class.disabled]="page() === totalPages()">
+            <button class="page-link" (click)="goToPage(page() + 1)">Siguiente</button>
+          </li>
+        </ul>
+      </nav>
+    }
+  }
+</div>
