@@ -1,0 +1,89 @@
+<div>
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <h2 class="h5 mb-0">Actividades</h2>
+    @if (canManage() && club(); as c) {
+      <a class="btn btn-primary btn-sm" [routerLink]="['/clubes', c.id, 'actividades', 'nueva']">
+        Nueva actividad
+      </a>
+    }
+  </div>
+
+  <div class="btn-group btn-group-sm mb-3" role="group" aria-label="Filtro estado">
+    <button class="btn btn-outline-secondary" [class.active]="estado() === ''" (click)="setEstado('')">Todas</button>
+    <button class="btn btn-outline-secondary" [class.active]="estado() === 'programada'" (click)="setEstado('programada')">Programadas</button>
+    <button class="btn btn-outline-secondary" [class.active]="estado() === 'en_curso'" (click)="setEstado('en_curso')">En curso</button>
+    <button class="btn btn-outline-secondary" [class.active]="estado() === 'finalizada'" (click)="setEstado('finalizada')">Finalizadas</button>
+    <button class="btn btn-outline-secondary" [class.active]="estado() === 'cancelada'" (click)="setEstado('cancelada')">Canceladas</button>
+  </div>
+
+  @if (error(); as err) {
+    <div class="alert alert-danger small" role="alert">
+      No se pudieron cargar las actividades: {{ err.message }}
+    </div>
+  }
+
+  @if (loading() && actividades().length === 0) {
+    <div class="text-center text-muted py-4">
+      <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+      Cargando…
+    </div>
+  } @else if (actividades().length === 0) {
+    <p class="text-muted">No hay actividades en este filtro.</p>
+  } @else {
+    <div class="row g-3">
+      @for (a of actividades(); track a.id) {
+        <div class="col-md-6 col-lg-4">
+          <a
+            class="card border-0 shadow-sm h-100 text-decoration-none text-body"
+            [routerLink]="club() ? ['/clubes', club()!.id, 'actividades', a.id] : []"
+          >
+            <div class="card-body p-3">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <h3 class="h6 mb-0">{{ a.titulo }}</h3>
+                <span
+                  class="badge"
+                  [class.bg-primary]="a.estado === 'programada'"
+                  [class.bg-warning]="a.estado === 'en_curso'"
+                  [class.text-dark]="a.estado === 'en_curso'"
+                  [class.bg-success]="a.estado === 'finalizada'"
+                  [class.bg-danger]="a.estado === 'cancelada'"
+                >
+                  {{ a.estado }}
+                </span>
+              </div>
+              <div class="small text-muted mb-2">
+                {{ a.fecha_inicio | date: 'medium' }}
+                @if (a.lugar) { · {{ a.lugar }} }
+              </div>
+              @if (a.descripcion) {
+                <p class="small mb-2">{{ a.descripcion }}</p>
+              }
+              <div class="d-flex gap-2 small text-muted">
+                @if (a.dificultad) { <span>Dificultad: {{ a.dificultad }}</span> }
+                @if (a.distancia) { <span>{{ a.distancia }} km</span> }
+                @if (a.desnivel_positivo_m != null) { <span>D+: {{ a.desnivel_positivo_m }} m</span> }
+                @if (a.cupo_maximo) { <span>{{ a.inscripciones_count ?? 0 }} / {{ a.cupo_maximo }} plazas</span> }
+              </div>
+            </div>
+          </a>
+        </div>
+      }
+    </div>
+
+    @if (totalPages() > 1) {
+      <nav aria-label="Paginación de actividades" class="mt-3">
+        <ul class="pagination pagination-sm justify-content-center">
+          <li class="page-item" [class.disabled]="page() === 1">
+            <button class="page-link" (click)="goToPage(page() - 1)">Anterior</button>
+          </li>
+          <li class="page-item">
+            <span class="page-link">{{ page() }} / {{ totalPages() }}</span>
+          </li>
+          <li class="page-item" [class.disabled]="page() === totalPages()">
+            <button class="page-link" (click)="goToPage(page() + 1)">Siguiente</button>
+          </li>
+        </ul>
+      </nav>
+    }
+  }
+</div>
