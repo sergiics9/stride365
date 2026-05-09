@@ -3,7 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { ApiError, Paginated, PublicacionFeed } from '../../shared/models';
+import { Actividad, ApiError, Paginated, PublicacionFeed } from '../../shared/models';
 import { toApiError } from '../../shared/utils/api-error.util';
 
 export interface FeedFilters {
@@ -67,8 +67,46 @@ export class FeedService {
   }
 
   async getById(id: number | string): Promise<PublicacionFeed> {
-    return firstValueFrom(
-      this.http.get<PublicacionFeed>(`${environment.apiUrl}/feed/${id}`),
+    return firstValueFrom(this.http.get<PublicacionFeed>(`${environment.apiUrl}/feed/${id}`));
+  }
+
+  async startRecording(body: { titulo?: string } = {}): Promise<Actividad> {
+    return await firstValueFrom(
+      this.http.post<Actividad>(`${environment.apiUrl}/feed/recordings/start`, body),
+    );
+  }
+
+  async appendRecordingCoords(recordingId: number, coordinates: number[][]): Promise<Actividad> {
+    return await firstValueFrom(
+      this.http.patch<Actividad>(`${environment.apiUrl}/feed/recordings/${recordingId}`, {
+        coordinates,
+      }),
+    );
+  }
+
+  async finishRecording(
+    recordingId: number,
+    body: { titulo?: string; descripcion?: string } = {},
+  ): Promise<{ message: string; actividad: Actividad }> {
+    return await firstValueFrom(
+      this.http.post<{ message: string; actividad: Actividad }>(
+        `${environment.apiUrl}/feed/recordings/${recordingId}/finish`,
+        body,
+      ),
+    );
+  }
+
+  async importGpx(file: File, titulo?: string): Promise<{ message: string; actividad: Actividad }> {
+    const fd = new FormData();
+    fd.append('gpx', file);
+    if (titulo?.trim()) {
+      fd.append('titulo', titulo.trim());
+    }
+    return await firstValueFrom(
+      this.http.post<{ message: string; actividad: Actividad }>(
+        `${environment.apiUrl}/feed/recordings/import-gpx`,
+        fd,
+      ),
     );
   }
 }
