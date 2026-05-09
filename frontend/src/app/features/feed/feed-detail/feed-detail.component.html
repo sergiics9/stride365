@@ -4,73 +4,116 @@
   </a>
 
   @if (publicacion(); as pub) {
-    <article>
-      <header class="mb-3">
-        <h1 class="h3 fw-semibold mb-2">{{ pub.titulo ?? 'Publicación' }}</h1>
-        <div class="d-flex flex-wrap gap-2 align-items-center small text-muted">
-          <span>{{ pub.user?.nombre }} {{ pub.user?.apellido }}</span>
-          <span aria-hidden="true">·</span>
-          <time
-            [attr.datetime]="pub.fecha_publicacion"
-            [title]="pub.fecha_publicacion | date: 'medium'"
-          >
-            {{ pub.fecha_publicacion | date: 'longDate' }}
-          </time>
-          @if (pub.tipo) {
-            <span class="badge bg-light text-dark text-uppercase">{{ pub.tipo }}</span>
-          }
-          @if (pub.visibilidad) {
-            <span class="badge bg-secondary text-uppercase">Dificultad: {{ pub.visibilidad }}</span>
-          }
-        </div>
-      </header>
-
-      @if (pub.imagen_url) {
-        <img
-          class="img-fluid rounded shadow-sm mb-4"
-          [src]="pub.imagen_url"
-          [alt]="pub.titulo ?? 'Imagen de la publicación'"
-        />
-      }
-
-      <section class="mb-4">
-        <p class="mb-0" style="white-space: pre-wrap">{{ pub.contenido }}</p>
-      </section>
-
-      <section class="mb-4">
-        <h2 class="h5 mb-2">Track</h2>
-        @if (gpx()) {
-          <div #mapContainer class="map-container shadow-sm rounded border"></div>
-          @if (mapStatus() === 'loading') {
-            <p class="text-muted small mt-2 mb-0">
-              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-              Cargando track…
-            </p>
-          } @else if (mapStatus() === 'error') {
-            <p class="text-danger small mt-2 mb-0">No se pudo cargar el track.</p>
-          }
-        } @else {
-          <p class="text-muted small mb-0">Esta publicación no incluye archivo GPX.</p>
+  <article>
+    <header class="mb-3">
+      <h1 class="h3 fw-semibold mb-2">{{ pub.titulo ?? 'Actividad' }}</h1>
+      <div class="d-flex flex-wrap gap-2 align-items-center small text-muted">
+        <span class="fw-semibold text-body">{{ pub.user?.nombre }} {{ pub.user?.apellido }}</span>
+        <span aria-hidden="true">·</span>
+        <time [attr.datetime]="pub.fecha_publicacion" [title]="pub.fecha_publicacion | date: 'medium'">
+          {{ pub.fecha_publicacion | date: 'longDate' }}
+        </time>
+        @if (pub.actividad?.distancia) {
+        <span aria-hidden="true">·</span>
+        <span>{{ pub.actividad?.distancia }} km</span>
         }
-      </section>
+        @if (pub.actividad?.modalidad) {
+        <span class="badge bg-light text-dark">{{ pub.actividad?.modalidad }}</span>
+        }
+        @if (pub.tipo) {
+        <span class="badge bg-secondary text-uppercase small">{{ pub.tipo | titlecase }}</span>
+        }
+      </div>
+    </header>
 
-      @if (imagenes().length > 1) {
-        <section class="mb-4">
-          <h2 class="h5 mb-2">Galería</h2>
-          <div class="row g-2 row-cols-2 row-cols-md-3">
-            @for (img of imagenes(); track img.id) {
-              <div class="col">
-                <img
-                  class="img-fluid rounded shadow-sm gallery-img"
-                  [src]="img.original_url ?? img.preview_url"
-                  [alt]="img.name"
-                  loading="lazy"
-                />
-              </div>
+    @if (pub.actividad; as act) {
+    @if (
+    (act.duracion_segundos != null && act.duracion_segundos > 0) ||
+    (act.ritmo_segundos_por_km != null && act.ritmo_segundos_por_km > 0) ||
+    act.desnivel_positivo_m != null ||
+    (act.pulsaciones_media != null && act.pulsaciones_media > 0)
+    ) {
+    <section class="mb-4" aria-label="Métricas de la actividad">
+      <h2 class="h5 mb-2">Métricas</h2>
+      <dl class="row row-cols-2 row-cols-md-4 g-3 small mb-0">
+        @if (act.duracion_segundos != null && act.duracion_segundos > 0) {
+        <div class="col">
+          <dt class="text-muted fw-normal">Duración</dt>
+          <dd class="mb-0 fw-semibold">{{ formatActividadDuracion(act.duracion_segundos) }}</dd>
+        </div>
+        }
+        @if (act.ritmo_segundos_por_km != null && act.ritmo_segundos_por_km > 0) {
+        <div class="col">
+          <dt class="text-muted fw-normal">Ritmo medio</dt>
+          <dd class="mb-0 fw-semibold">{{ formatActividadPace(act.ritmo_segundos_por_km) }}</dd>
+        </div>
+        }
+        @if (act.desnivel_positivo_m != null) {
+        <div class="col">
+          <dt class="text-muted fw-normal">Desnivel +</dt>
+          <dd class="mb-0 fw-semibold">{{ act.desnivel_positivo_m }} m</dd>
+        </div>
+        }
+        @if (act.pulsaciones_media != null && act.pulsaciones_media > 0) {
+        <div class="col">
+          <dt class="text-muted fw-normal">Pulsaciones</dt>
+          <dd class="mb-0 fw-semibold">
+            {{ act.pulsaciones_media }} lpm media
+            @if (act.pulsaciones_max != null && act.pulsaciones_max > 0) {
+            <span class="text-muted fw-normal"> (máx. {{ act.pulsaciones_max }})</span>
             }
-          </div>
-        </section>
+          </dd>
+        </div>
+        }
+      </dl>
+    </section>
+    }
+    }
+
+    @if (pub.resumen) {
+    <p class="lead text-muted mb-3">{{ pub.resumen }}</p>
+    }
+
+    @if (pub.imagen_url) {
+    <img class="img-fluid rounded shadow-sm mb-4" [src]="pub.imagen_url" [alt]="pub.titulo ?? 'Imagen'" />
+    }
+
+    @if (pub.contenido?.trim()) {
+    <section class="mb-4">
+      <p class="mb-0" style="white-space: pre-wrap">{{ pub.contenido }}</p>
+    </section>
+    }
+
+    <section class="mb-4">
+      <h2 class="h5 mb-2">Track</h2>
+      @if (hasMap()) {
+      <div #mapContainer class="map-container shadow-sm rounded border"></div>
+      @if (mapStatus() === 'loading') {
+      <p class="text-muted small mt-2 mb-0">
+        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        Cargando mapa…
+      </p>
+      } @else if (mapStatus() === 'error') {
+      <p class="text-danger small mt-2 mb-0">No se pudo mostrar el track.</p>
       }
-    </article>
+      } @else {
+      <p class="text-muted small mb-0">Esta publicación no incluye track.</p>
+      }
+    </section>
+
+    @if (imagenes().length > 1) {
+    <section class="mb-4">
+      <h2 class="h5 mb-2">Galería</h2>
+      <div class="row g-2 row-cols-2 row-cols-md-3">
+        @for (img of imagenes(); track img.id) {
+        <div class="col">
+          <img class="img-fluid rounded shadow-sm gallery-img" [src]="img.original_url ?? img.preview_url"
+            [alt]="img.name" loading="lazy" />
+        </div>
+        }
+      </div>
+    </section>
+    }
+  </article>
   }
 </div>

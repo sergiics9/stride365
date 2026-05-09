@@ -1,48 +1,44 @@
 <div class="container">
-  <div class="row mb-4">
+  <div class="row mb-4 align-items-start">
     <div class="col-12 col-lg-8">
       <h1 class="h3 fw-semibold mb-1">Feed</h1>
       <p class="text-muted small mb-0">
-        Actividades registradas en directo por la comunidad. Cada vez que un usuario finaliza
-        una grabación, se publica aquí.
+        Tus salidas con GPS (estilo Strava) o importadas desde GPX. Solo aparecen actividades personales
+        publicadas aquí, no las del calendario de clubes.
       </p>
+    </div>
+    <div class="col-12 col-lg-4 mt-3 mt-lg-0">
+      <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+        <a class="btn btn-primary btn-sm" routerLink="/feed/grabar">Registrar en directo</a>
+        <button type="button" class="btn btn-outline-primary btn-sm" (click)="gpxFile.click()"
+          [disabled]="importingGpx()">
+          @if (importingGpx()) {
+          <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+          }
+          Importar GPX
+        </button>
+        <input #gpxFile type="file" class="d-none" accept=".gpx,.xml,application/gpx+xml"
+          (change)="onGpxSelected($event)" />
+      </div>
     </div>
   </div>
 
-  <form
-    [formGroup]="form"
-    class="card border-0 shadow-sm mb-4"
-    role="search"
-    aria-label="Filtros del feed"
-  >
+  <form [formGroup]="form" class="card border-0 shadow-sm mb-4" role="search" aria-label="Filtros del feed">
     <div class="card-body p-3">
       <div class="row g-2 align-items-end">
         <div class="col-6 col-md-4">
           <label for="filter-desde" class="form-label small mb-1">Desde</label>
-          <input
-            id="filter-desde"
-            type="date"
-            class="form-control form-control-sm"
-            formControlName="desde"
-          />
+          <input id="filter-desde" type="date" class="form-control form-control-sm" formControlName="desde" />
         </div>
 
         <div class="col-6 col-md-4">
           <label for="filter-hasta" class="form-label small mb-1">Hasta</label>
-          <input
-            id="filter-hasta"
-            type="date"
-            class="form-control form-control-sm"
-            formControlName="hasta"
-          />
+          <input id="filter-hasta" type="date" class="form-control form-control-sm" formControlName="hasta" />
         </div>
 
         <div class="col-12 col-md-4 d-flex gap-2 justify-content-end">
-          <button
-            type="button"
-            class="btn btn-outline-secondary btn-sm flex-grow-1 flex-md-grow-0"
-            (click)="resetFilters()"
-          >
+          <button type="button" class="btn btn-outline-secondary btn-sm flex-grow-1 flex-md-grow-0"
+            (click)="resetFilters()">
             Limpiar
           </button>
         </div>
@@ -51,100 +47,95 @@
   </form>
 
   @if (feedService.listError(); as err) {
-    <div class="alert alert-danger small" role="alert">
-      No se pudo cargar el feed: {{ err.message }}
-    </div>
+  <div class="alert alert-danger small" role="alert">
+    No se pudo cargar el feed: {{ err.message }}
+  </div>
   }
 
   @if (feedService.listLoading()) {
-    <div class="text-center text-muted py-5" aria-live="polite">
-      <span class="spinner-border me-2" role="status"></span>
-      Cargando publicaciones…
-    </div>
+  <div class="text-center text-muted py-5" aria-live="polite">
+    <span class="spinner-border me-2" role="status"></span>
+    Cargando publicaciones…
+  </div>
   } @else if (!hasResults()) {
-    <div class="text-center text-muted py-5">
-      <p class="mb-1 fw-semibold">Aún no hay actividades publicadas.</p>
-      <p class="small mb-0">
-        Cuando termines de grabar una actividad aparecerá aquí. Prueba también a quitar filtros.
-      </p>
-    </div>
-  } @else {
-    <div class="row g-3 row-cols-1 row-cols-md-2 row-cols-xl-3">
-      @for (pub of feedService.publicaciones(); track pub.id) {
-        <article class="col">
-          <a class="card h-100 shadow-sm border-0 text-decoration-none text-reset feed-card"
-            [routerLink]="['/feed', pub.id]">
-            @if (pub.imagen_url) {
-              <img
-                [src]="pub.imagen_url"
-                [alt]="pub.titulo ?? 'Publicación'"
-                class="card-img-top feed-card-img"
-                loading="lazy"
-              />
-            }
-            <div class="card-body d-flex flex-column">
-              <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                <h2 class="h6 mb-0">{{ pub.titulo ?? 'Sin título' }}</h2>
-                @if (pub.tipo) {
-                  <span class="badge bg-light text-dark text-uppercase small">{{ pub.tipo }}</span>
-                }
-              </div>
-              <p class="text-muted small mb-2">
-                {{ pub.contenido | truncate: 160 }}
-              </p>
-              <div class="mt-auto small text-muted d-flex flex-wrap gap-2 align-items-center">
-                <span>
-                  {{ pub.user?.nombre }} {{ pub.user?.apellido }}
-                </span>
-                <span aria-hidden="true">·</span>
-                <time
-                  [attr.datetime]="pub.fecha_publicacion"
-                  [title]="pub.fecha_publicacion | date: 'medium'"
-                >
-                  {{ pub.fecha_publicacion | relativeDate }}
-                </time>
-              </div>
-            </div>
-          </a>
-        </article>
-      }
-    </div>
-
-    @if (feedService.lastPage() > 1) {
-      <nav class="mt-4 d-flex justify-content-center" aria-label="Paginación">
-        <ul class="pagination">
-          <li class="page-item" [class.disabled]="page() === 1">
-            <button
-              type="button"
-              class="page-link"
-              (click)="goToPage(page() - 1)"
-              [disabled]="page() === 1"
-            >
-              Anterior
-            </button>
-          </li>
-          <li class="page-item active" aria-current="page">
-            <span class="page-link">
-              {{ page() }} / {{ feedService.lastPage() }}
-            </span>
-          </li>
-          <li class="page-item" [class.disabled]="page() === feedService.lastPage()">
-            <button
-              type="button"
-              class="page-link"
-              (click)="goToPage(page() + 1)"
-              [disabled]="page() === feedService.lastPage()"
-            >
-              Siguiente
-            </button>
-          </li>
-        </ul>
-      </nav>
-    }
-
-    <p class="text-center text-muted small mt-2 mb-0">
-      Mostrando {{ feedService.publicaciones().length }} de {{ feedService.total() }}
-      {{ feedService.total() === 1 ? 'publicación' : 'publicaciones' }}.
+  <div class="text-center text-muted py-5">
+    <p class="mb-1 fw-semibold">Aún no hay actividades en el feed.</p>
+    <p class="small mb-0">
+      Usa <strong>Registrar en directo</strong> o <strong>Importar GPX</strong> arriba para publicar tu primera salida.
     </p>
+  </div>
+  } @else {
+  <div class="row g-3 row-cols-1 row-cols-md-2 row-cols-xl-3">
+    @for (pub of feedService.publicaciones(); track pub.id) {
+    <article class="col">
+      <div class="card h-100 shadow-sm border-0 text-reset feed-card cursor-pointer" [routerLink]="['/feed', pub.id]"
+        [attr.aria-label]="'Abrir actividad: ' + (pub.titulo ?? 'Sin título')" role="link" tabindex="0">
+        @if (pub.imagen_url) {
+        <img [src]="pub.imagen_url" [alt]="pub.titulo ?? 'Publicación'" class="card-img-top feed-card-img"
+          loading="lazy" />
+        }
+        @if (pub.actividad?.track_geojson) {
+        <app-mini-track-thumbnail [track]="pub.actividad!.track_geojson" [compact]="!!pub.imagen_url"
+          [class.card-img-top]="!pub.imagen_url" class="feed-card-track-thumb" />
+        }
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+            <h2 class="h6 mb-0">{{ pub.titulo ?? 'Sin título' }}</h2>
+            @if (pub.tipo) {
+            <span class="badge bg-light text-dark text-uppercase small">{{ pub.tipo }}</span>
+            }
+          </div>
+          @if (pub.resumen) {
+          <p class="small text-muted mb-2">{{ pub.resumen }}</p>
+          }
+          <p class="text-muted small mb-2 flex-grow-1">
+            {{ pub.contenido | truncate: 120 }}
+          </p>
+          <div class="mt-auto small text-muted d-flex flex-wrap gap-2 align-items-center">
+            <span class="fw-semibold text-body">
+              {{ pub.user?.nombre }} {{ pub.user?.apellido }}
+            </span>
+            <span aria-hidden="true">·</span>
+            <time [attr.datetime]="pub.fecha_publicacion" [title]="pub.fecha_publicacion | date: 'medium'">
+              {{ pub.fecha_publicacion | relativeDate }}
+            </time>
+            @if (pub.actividad?.distancia) {
+            <span aria-hidden="true">·</span>
+            <span>{{ pub.actividad?.distancia }} km</span>
+            }
+          </div>
+        </div>
+      </div>
+    </article>
+    }
+  </div>
+
+  @if (feedService.lastPage() > 1) {
+  <nav class="mt-4 d-flex justify-content-center" aria-label="Paginación">
+    <ul class="pagination">
+      <li class="page-item" [class.disabled]="page() === 1">
+        <button type="button" class="page-link" (click)="goToPage(page() - 1)" [disabled]="page() === 1">
+          Anterior
+        </button>
+      </li>
+      <li class="page-item active" aria-current="page">
+        <span class="page-link">
+          {{ page() }} / {{ feedService.lastPage() }}
+        </span>
+      </li>
+      <li class="page-item" [class.disabled]="page() === feedService.lastPage()">
+        <button type="button" class="page-link" (click)="goToPage(page() + 1)"
+          [disabled]="page() === feedService.lastPage()">
+          Siguiente
+        </button>
+      </li>
+    </ul>
+  </nav>
+  }
+
+  <p class="text-center text-muted small mt-2 mb-0">
+    Mostrando {{ feedService.publicaciones().length }} de {{ feedService.total() }}
+    {{ feedService.total() === 1 ? 'publicación' : 'publicaciones' }}.
+  </p>
   }
 </div>
