@@ -45,6 +45,9 @@ export class RegisterComponent implements OnDestroy {
       apellido: ['', [Validators.required, Validators.maxLength(255)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
       telefono: ['', [Validators.maxLength(50)]],
+      sexo: ['' as '' | 'M' | 'F' | 'O', []],
+      fecha_nacimiento: ['', []],
+      direccion: ['', [Validators.maxLength(500)]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       password_confirmation: ['', [Validators.required]],
     },
@@ -67,6 +70,13 @@ export class RegisterComponent implements OnDestroy {
   protected readonly emailError = computed(() => firstFieldError(this.serverError(), 'email'));
   protected readonly telefonoError = computed(() =>
     firstFieldError(this.serverError(), 'telefono'),
+  );
+  protected readonly sexoError = computed(() => firstFieldError(this.serverError(), 'sexo'));
+  protected readonly fechaNacimientoError = computed(() =>
+    firstFieldError(this.serverError(), 'fecha_nacimiento'),
+  );
+  protected readonly direccionError = computed(() =>
+    firstFieldError(this.serverError(), 'direccion'),
   );
   protected readonly passwordError = computed(() =>
     firstFieldError(this.serverError(), 'password'),
@@ -144,6 +154,9 @@ export class RegisterComponent implements OnDestroy {
         apellido: value.apellido.trim(),
         email: value.email.trim(),
         telefono: value.telefono.trim() || null,
+        sexo: (value.sexo || null) as 'M' | 'F' | 'O' | null,
+        fecha_nacimiento: value.fecha_nacimiento || null,
+        direccion: value.direccion.trim() || null,
         password: value.password,
         password_confirmation: value.password_confirmation,
         device_name: navigator.userAgent.slice(0, 100),

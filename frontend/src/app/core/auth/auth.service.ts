@@ -78,12 +78,15 @@ export class AuthService {
     return this._memberships().some(
       (m) =>
         m.club_id === clubId &&
-        m.role === 'socio' &&
+        (m.role === 'socio' || m.role === 'admin_club') &&
         (m.status === 'active' || m.status === 'grace'),
     );
   }
 
   isGuideOf(clubId: number): boolean {
+    if (this.isAdminOf(clubId)) {
+      return true;
+    }
     return this._memberships().some(
       (m) =>
         m.club_id === clubId &&
@@ -126,6 +129,15 @@ export class AuthService {
       if (payload.telefono != null && payload.telefono !== '') {
         fd.append('telefono', payload.telefono);
       }
+      if (payload.sexo) {
+        fd.append('sexo', payload.sexo);
+      }
+      if (payload.fecha_nacimiento) {
+        fd.append('fecha_nacimiento', payload.fecha_nacimiento);
+      }
+      if (payload.direccion != null && payload.direccion !== '') {
+        fd.append('direccion', payload.direccion);
+      }
       if (payload.device_name) {
         fd.append('device_name', payload.device_name);
       }
@@ -156,22 +168,32 @@ export class AuthService {
     }
   }
 
+  private _meInFlight: Promise<MeResponse | null> | null = null;
+
   async me(): Promise<MeResponse | null> {
     if (!this.isAuthenticated()) {
       return null;
     }
-    try {
-      const response = await firstValueFrom(
-        this.http.get<MeResponse>(`${environment.apiUrl}/auth/me`),
-      );
-      this._user.set(response.user);
-      this._roles.set(response.roles);
-      this._memberships.set(response.memberships ?? []);
-      return response;
-    } catch {
-      this.clearSession();
-      return null;
+    if (this._meInFlight) {
+      return this._meInFlight;
     }
+    this._meInFlight = (async () => {
+      try {
+        const response = await firstValueFrom(
+          this.http.get<MeResponse>(`${environment.apiUrl}/auth/me`),
+        );
+        this._user.set(response.user);
+        this._roles.set(response.roles);
+        this._memberships.set(response.memberships ?? []);
+        return response;
+      } catch {
+        this.clearSession();
+        return null;
+      } finally {
+        this._meInFlight = null;
+      }
+    })();
+    return this._meInFlight;
   }
 
   async updateProfile(payload: UpdateProfilePayload): Promise<MeResponse> {

@@ -117,6 +117,63 @@
           }
         </div>
 
+        <div class="col-md-6">
+          <label for="sexo" class="form-label">Sexo <span class="text-muted small">(opcional)</span></label>
+          <select
+            id="sexo"
+            class="form-select"
+            formControlName="sexo"
+            [class.is-invalid]="!!sexoError()"
+          >
+            <option value="">Prefiero no indicarlo</option>
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+            <option value="O">Otro</option>
+          </select>
+          @if (sexoError()) {
+            <div class="invalid-feedback d-block">{{ sexoError() }}</div>
+          }
+        </div>
+
+        <div class="col-md-6">
+          <label for="fecha_nacimiento" class="form-label">Fecha de nacimiento <span class="text-muted small">(opcional)</span></label>
+          <input
+            id="fecha_nacimiento"
+            type="date"
+            class="form-control"
+            formControlName="fecha_nacimiento"
+            [class.is-invalid]="!!fechaNacimientoError()"
+          />
+          @if (fechaNacimientoError()) {
+            <div class="invalid-feedback d-block">{{ fechaNacimientoError() }}</div>
+          }
+        </div>
+
+        <div class="col-12">
+          <label for="direccion" class="form-label">Dirección <span class="text-muted small">(opcional)</span></label>
+          <input
+            id="direccion"
+            type="text"
+            class="form-control"
+            formControlName="direccion"
+            autocomplete="street-address"
+            [class.is-invalid]="
+              (form.controls.direccion.touched && form.controls.direccion.invalid) ||
+              !!direccionError()
+            "
+          />
+          @if (form.controls.direccion.touched && form.controls.direccion.errors; as e) {
+            <div class="invalid-feedback">
+              @if (e['maxlength']) {
+                Máximo 500 caracteres.
+              }
+            </div>
+          }
+          @if (direccionError()) {
+            <div class="invalid-feedback d-block">{{ direccionError() }}</div>
+          }
+        </div>
+
         <div class="col-12">
           <label for="foto" class="form-label">Foto de perfil <span class="text-muted small">(opcional)</span></label>
           <input

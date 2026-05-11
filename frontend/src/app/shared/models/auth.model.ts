@@ -13,6 +13,9 @@ export interface RegisterRequest {
   apellido: string;
   email: string;
   telefono?: string | null;
+  sexo?: 'M' | 'F' | 'O' | null;
+  fecha_nacimiento?: string | null;
+  direccion?: string | null;
   password: string;
   password_confirmation: string;
   device_name?: string;
