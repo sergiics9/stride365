@@ -15,6 +15,8 @@ export const clubAccessGuard: CanMatchFn = async () => {
     return router.createUrlTree(['/auth/login']);
   }
 
+  // Cargar perfil solo si aún no está en memoria. El refresh tras pago en Stripe
+  // lo dispara explícitamente el componente de suscripciones.
   if (!auth.user()) {
     await auth.me();
   }
