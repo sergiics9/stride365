@@ -56,6 +56,10 @@ export class ClubesService {
     }
   }
 
+  async delete(id: number): Promise<void> {
+    await firstValueFrom(this.http.delete(`${environment.apiUrl}/clubes/${id}`));
+  }
+
   async createApplication(payload: CreateClubApplicationPayload): Promise<ClubApplication> {
     const fd = new FormData();
     fd.append('nombre', payload.nombre);

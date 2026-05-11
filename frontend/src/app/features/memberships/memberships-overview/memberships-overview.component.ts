@@ -138,8 +138,26 @@ export class MembershipsOverviewComponent {
   }
 
   protected nextRenewal(m: Membership): string | null {
-    if (m.status === 'cancelled' || m.status === 'grace') return m.ends_at;
-    return m.current_period_end ?? null;
+    if (m.status === 'cancelled' || m.status === 'grace') {
+      return m.ends_at;
+    }
+    if (m.current_period_end) {
+      return m.current_period_end;
+    }
+    if (m.subscribed_at) {
+      return this.oneYearAfter(m.subscribed_at);
+    }
+    return null;
+  }
+
+  /** Cuota anual: si Stripe no devolvió fin de periodo, estimamos 1 año desde el alta/pago. */
+  private oneYearAfter(isoDate: string): string {
+    const d = new Date(isoDate);
+    if (Number.isNaN(d.getTime())) {
+      return isoDate;
+    }
+    d.setFullYear(d.getFullYear() + 1);
+    return d.toISOString();
   }
 
   protected nextRenewalLabel(m: Membership): string {

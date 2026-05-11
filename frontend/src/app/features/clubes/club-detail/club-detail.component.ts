@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { ToastService } from '../../../core/toast/toast.service';
 import { Club } from '../../../shared/models';
 import { toApiError } from '../../../shared/utils/api-error.util';
+import { ClubesService } from '../clubes.service';
 import { MembershipsService } from '../../memberships/memberships.service';
 
 @Component({
@@ -17,12 +18,14 @@ import { MembershipsService } from '../../memberships/memberships.service';
 })
 export class ClubDetailComponent {
   protected readonly auth = inject(AuthService);
+  private readonly clubes = inject(ClubesService);
   private readonly memberships = inject(MembershipsService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
   protected readonly pricing = environment.pricing;
   protected readonly subscribing = signal(false);
+  protected readonly deletingClub = signal(false);
 
   readonly club = input<Club | null>(null);
 
@@ -39,10 +42,20 @@ export class ClubDetailComponent {
   protected readonly isMember = computed(() => this.isAdmin() || this.isSocio());
 
   protected readonly canSubscribeAsSocio = computed(() => {
-    if (!this.club()) return false;
+    const c = this.club();
+    if (!c) return false;
     if (this.auth.isSuperAdmin()) return false;
     if (this.isAdmin()) return false;
     if (this.isSocio()) return false;
+    const u = this.auth.user();
+    if (
+      u &&
+      c.application_status === 'approved' &&
+      c.requested_by != null &&
+      c.requested_by === u.id
+    ) {
+      return false;
+    }
     return true;
   });
 
@@ -65,6 +78,28 @@ export class ClubDetailComponent {
       this.toast.error(toApiError(err).message);
     } finally {
       this.subscribing.set(false);
+    }
+  }
+
+  protected async deleteClubAsSuperAdmin(): Promise<void> {
+    const c = this.club();
+    if (!c) return;
+    if (
+      !confirm(
+        `¿Eliminar el club «${c.nombre}»? Se borrarán socios, actividades y datos asociados. Esta acción no se puede deshacer.`,
+      )
+    ) {
+      return;
+    }
+    this.deletingClub.set(true);
+    try {
+      await this.clubes.delete(c.id);
+      this.toast.success('Club eliminado.');
+      await this.router.navigate(['/clubes']);
+    } catch (err) {
+      this.toast.error(toApiError(err).message);
+    } finally {
+      this.deletingClub.set(false);
     }
   }
 }
