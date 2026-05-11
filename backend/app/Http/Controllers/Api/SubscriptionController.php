@@ -19,11 +19,57 @@ class SubscriptionController extends Controller
     {
         $user = $request->user();
 
-        $rows = $user->memberships()
+        $visibleStatuses = [ClubUser::STATUS_PENDING, ClubUser::STATUS_ACTIVE, ClubUser::STATUS_GRACE];
+
+        $buildQuery = fn () => $user->memberships()
             ->with('club:id,nombre,slug,logo_url,active,application_status')
+            ->whereIn('status', $visibleStatuses)
+            ->whereHas('club', fn ($q) => $q->where('application_status', '!=', Club::STATUS_REJECTED))
             ->orderBy('role')
-            ->orderBy('club_id')
-            ->get();
+            ->orderBy('club_id');
+
+        $rows = $buildQuery()->get();
+
+        // Sincronizar con Stripe: pendientes que ya están pagadas en Cashier, y fin de periodo faltante
+        $synced = false;
+        foreach ($rows as $membership) {
+            if (! $membership->subscription_name) {
+                continue;
+            }
+            try {
+                $sub = $user->subscription($membership->subscription_name);
+
+                // Si no existe suscripción local de Cashier pero la membresía sigue pendiente,
+                // el webhook no llegó: consultamos Stripe directamente.
+                if (! $sub && $membership->status === ClubUser::STATUS_PENDING) {
+                    if (ClubUser::syncFromStripeApi($user, $membership->subscription_name)) {
+                        $synced = true;
+                    }
+
+                    continue;
+                }
+                if (! $sub) {
+                    continue;
+                }
+                if ($membership->status === ClubUser::STATUS_PENDING
+                    && in_array($sub->stripe_status, ['active', 'trialing'], true)) {
+                    ClubUser::syncFromCashierSubscription($sub);
+                    $synced = true;
+
+                    continue;
+                }
+                if ($membership->status === ClubUser::STATUS_ACTIVE && ! $membership->current_period_end) {
+                    ClubUser::syncFromCashierSubscription($sub);
+                    $synced = true;
+                }
+            } catch (Throwable $e) {
+                // Stripe no disponible
+            }
+        }
+
+        if ($synced) {
+            $rows = $buildQuery()->get();
+        }
 
         $items = $rows->map(fn (ClubUser $m) => $this->serializeMembership($m));
 
@@ -150,7 +196,7 @@ class SubscriptionController extends Controller
         }
 
         $user->subscription($name)->cancel();
-        $this->syncMembershipFromSubscription($user->fresh()->subscription($name));
+        ClubUser::syncFromCashierSubscription($user->fresh()->subscription($name));
 
         return response()->json([
             'message' => 'Suscripción cancelada al final del periodo.',
@@ -174,7 +220,7 @@ class SubscriptionController extends Controller
         }
 
         $subscription->resume();
-        $this->syncMembershipFromSubscription($user->fresh()->subscription($name));
+        ClubUser::syncFromCashierSubscription($user->fresh()->subscription($name));
 
         return response()->json([
             'message' => 'Suscripción reanudada.',
@@ -262,73 +308,10 @@ class SubscriptionController extends Controller
             'status' => $m->status,
             'subscription_name' => $m->subscription_name,
             'subscribed_at' => $m->subscribed_at?->toIso8601String(),
-            'current_period_end' => $m->current_period_end?->toIso8601String(),
+            'current_period_end' => $m->effectiveCurrentPeriodEnd()?->toIso8601String(),
             'ends_at' => $m->ends_at?->toIso8601String(),
             'kind' => $m->role === ClubUser::ROLE_ADMIN ? 'club' : 'socio',
         ];
-    }
-
-    private function syncMembershipFromSubscription(?Subscription $subscription): void
-    {
-        if (! $subscription) {
-            return;
-        }
-
-        $parsed = ClubUser::parseSubscriptionName($subscription->name);
-        if (! $parsed) {
-            return;
-        }
-
-        $membership = ClubUser::firstOrCreate(
-            [
-                'user_id' => $subscription->user_id,
-                'club_id' => $parsed['club_id'],
-                'role' => $parsed['role'],
-            ],
-            [
-                'status' => ClubUser::STATUS_PENDING,
-                'subscription_name' => $subscription->name,
-                'joined_at' => now()->toDateString(),
-            ]
-        );
-
-        $status = $this->mapStripeStatus($subscription);
-
-        $stripePeriodEnd = null;
-        try {
-            $stripeSub = $subscription->asStripeSubscription();
-            $ts = $stripeSub->current_period_end
-                ?? ($stripeSub->items->data[0]->current_period_end ?? null);
-            if ($ts) {
-                $stripePeriodEnd = Carbon::createFromTimestamp($ts);
-            }
-        } catch (Throwable $e) {
-            $stripePeriodEnd = null;
-        }
-
-        $membership->fill([
-            'subscription_name' => $subscription->name,
-            'stripe_subscription_id' => $subscription->stripe_id,
-            'status' => $status,
-            'subscribed_at' => $membership->subscribed_at ?? now(),
-            'current_period_end' => $stripePeriodEnd,
-            'ends_at' => $subscription->ends_at,
-        ])->save();
-    }
-
-    private function mapStripeStatus(Subscription $subscription): string
-    {
-        if ($subscription->onGracePeriod()) {
-            return ClubUser::STATUS_GRACE;
-        }
-        if ($subscription->canceled() && ! $subscription->onGracePeriod()) {
-            return ClubUser::STATUS_CANCELLED;
-        }
-        if (in_array($subscription->stripe_status, ['active', 'trialing'], true)) {
-            return ClubUser::STATUS_ACTIVE;
-        }
-
-        return ClubUser::STATUS_INACTIVE;
     }
 
     private function extractSubscriptionMetadata($invoice): ?array
@@ -345,10 +328,10 @@ class SubscriptionController extends Controller
                 return null;
             }
 
-            $parsed = ClubUser::parseSubscriptionName($local->name);
+            $parsed = ClubUser::parseSubscriptionName($local->type);
 
             return [
-                'name' => $local->name,
+                'name' => $local->type,
                 'kind' => $parsed['kind'] ?? null,
                 'club_id' => $parsed['club_id'] ?? null,
             ];

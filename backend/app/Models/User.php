@@ -13,6 +13,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Cashier\Billable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Throwable;
 
 class User extends Authenticatable
 {
@@ -113,16 +114,35 @@ class User extends Authenticatable
 
     public function isAdminOfClub(int $clubId): bool
     {
-        return $this->memberships()
+        if ($this->memberships()
             ->where('role', ClubUser::ROLE_ADMIN)
             ->where('club_id', $clubId)
             ->whereIn('status', [ClubUser::STATUS_ACTIVE, ClubUser::STATUS_GRACE])
-            ->exists();
+            ->exists()) {
+            return true;
+        }
+
+        $pending = $this->memberships()
+            ->where('role', ClubUser::ROLE_ADMIN)
+            ->where('club_id', $clubId)
+            ->where('status', ClubUser::STATUS_PENDING)
+            ->first();
+
+        if (! $pending) {
+            return false;
+        }
+
+        try {
+            return $this->subscribed(ClubUser::buildSubscriptionName('club', $clubId));
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 
     public function isSocioOfClub(int $clubId): bool
     {
-        return $this->memberships()
+        // Admin activo del club: mismo acceso que un socio (sin fila duplicada en club_user).
+        return $this->isAdminOfClub($clubId) || $this->memberships()
             ->where('role', ClubUser::ROLE_SOCIO)
             ->where('club_id', $clubId)
             ->whereIn('status', [ClubUser::STATUS_ACTIVE, ClubUser::STATUS_GRACE])
@@ -131,6 +151,10 @@ class User extends Authenticatable
 
     public function isGuideOfClub(int $clubId): bool
     {
+        if ($this->isAdminOfClub($clubId)) {
+            return true;
+        }
+
         return $this->memberships()
             ->where('role', ClubUser::ROLE_SOCIO)
             ->where('club_id', $clubId)

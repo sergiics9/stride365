@@ -11,14 +11,13 @@ use Illuminate\Http\Request;
 
 class ClubController extends Controller
 {
-
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
 
         $query = Club::query()
             ->withCount([
-                'memberships as socios_count' => fn($q) => $q
+                'memberships as socios_count' => fn ($q) => $q
                     ->where('role', ClubUser::ROLE_SOCIO)
                     ->whereIn('status', [ClubUser::STATUS_ACTIVE, ClubUser::STATUS_GRACE]),
                 'grupos',
@@ -40,18 +39,27 @@ class ClubController extends Controller
     public function show(Request $request, Club $club): JsonResponse
     {
         $user = $request->user();
-
         $isSuperAdmin = $user && $user->hasRole('super_admin');
-        $isMember = $user && ($user->isAdminOfClub($club->id) || $user->isSocioOfClub($club->id));
 
-        // Solo público si está activo + aprobado, o si el usuario es miembro/admin.
-        if (! $isSuperAdmin && ! $isMember && ! $club->isActive()) {
-            abort(404);
+        if (! $isSuperAdmin) {
+            if ($club->application_status === Club::STATUS_REJECTED) {
+                abort(404);
+            }
+
+            if ($club->application_status === Club::STATUS_PENDING) {
+                // Solo el solicitante puede ver su club pendiente
+                abort_unless($user && $club->requested_by === $user->id, 404);
+            }
+
+            if (! $club->isActive()) {
+                $isMember = $user && ($user->isAdminOfClub($club->id) || $user->isSocioOfClub($club->id));
+                abort_unless($isMember, 404);
+            }
         }
 
         return response()->json(
             $club->loadCount([
-                'memberships as socios_count' => fn($q) => $q
+                'memberships as socios_count' => fn ($q) => $q
                     ->where('role', ClubUser::ROLE_SOCIO)
                     ->whereIn('status', [ClubUser::STATUS_ACTIVE, ClubUser::STATUS_GRACE]),
                 'grupos',

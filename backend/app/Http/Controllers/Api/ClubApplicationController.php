@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreClubApplicationRequest;
 use App\Models\Club;
 use App\Models\ClubUser;
+use App\Models\User;
+use App\Notifications\ClubApplicationApprovedNotification;
+use App\Notifications\ClubApplicationRejectedNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -88,7 +91,7 @@ class ClubApplicationController extends Controller
         ])->save();
 
         if ($club->requested_by) {
-            $membership = ClubUser::firstOrCreate(
+            ClubUser::firstOrCreate(
                 [
                     'user_id' => $club->requested_by,
                     'club_id' => $club->id,
@@ -101,9 +104,18 @@ class ClubApplicationController extends Controller
                 ]
             );
 
-            // Si la suscripción Stripe ya está activa, marcamos la membresía como activa.
-            if ($membership->stripe_subscription_id && $membership->status === ClubUser::STATUS_PENDING) {
-                $membership->update(['status' => ClubUser::STATUS_ACTIVE]);
+            $requester = User::find($club->requested_by);
+            if ($requester) {
+                $subName = ClubUser::buildSubscriptionName('club', $club->id);
+                if ($requester->subscribed($subName)) {
+                    $cashierSub = $requester->subscription($subName);
+                    if ($cashierSub) {
+                        ClubUser::syncFromCashierSubscription($cashierSub);
+                    }
+                }
+
+                $clubUrl = config('app.frontend_url').'/clubes/'.$club->id;
+                $requester->notify(new ClubApplicationApprovedNotification($club->fresh(), $clubUrl));
             }
         }
 
@@ -155,6 +167,11 @@ class ClubApplicationController extends Controller
                     'left_at' => now()->toDateString(),
                     'left_reason' => 'Solicitud rechazada: '.$validated['reason'],
                 ]);
+            }
+
+            $requester = User::find($club->requested_by);
+            if ($requester) {
+                $requester->notify(new ClubApplicationRejectedNotification($club->fresh(), $validated['reason']));
             }
         }
 

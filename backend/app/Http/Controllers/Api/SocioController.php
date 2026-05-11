@@ -196,7 +196,7 @@ class SocioController extends Controller
             'is_guide' => $m->is_guide,
             'status' => $m->status,
             'subscription_name' => $m->subscription_name,
-            'current_period_end' => $m->current_period_end?->toIso8601String(),
+            'current_period_end' => $m->effectiveCurrentPeriodEnd()?->toIso8601String(),
             'ends_at' => $m->ends_at?->toIso8601String(),
             'joined_at' => $m->joined_at?->toDateString(),
             'left_at' => $m->left_at?->toDateString(),

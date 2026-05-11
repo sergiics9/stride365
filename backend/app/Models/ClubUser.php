@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+use Laravel\Cashier\Subscription;
+use Throwable;
 
 class ClubUser extends Model
 {
@@ -86,5 +89,154 @@ class ClubUser extends Model
             'club_id' => (int) $m[2],
             'role' => $m[1] === 'club' ? self::ROLE_ADMIN : self::ROLE_SOCIO,
         ];
+    }
+
+    /**
+     * Fin de periodo para mostrar al usuario: Stripe (current_period_end) o,
+     * si falta, un año después de la fecha de alta/pago (cuota anual).
+     */
+    public function effectiveCurrentPeriodEnd(): ?Carbon
+    {
+        if ($this->current_period_end !== null) {
+            return $this->current_period_end;
+        }
+
+        if ($this->subscribed_at !== null) {
+            return $this->subscribed_at->copy()->addYear();
+        }
+
+        return null;
+    }
+
+    /**
+     * Actualiza club_user desde la suscripción de Cashier (Stripe).
+     */
+    public static function syncFromCashierSubscription(Subscription $subscription, bool $deleted = false): ?self
+    {
+        // Cashier 16 usa la columna `type` (antes `name`).
+        $parsed = self::parseSubscriptionName($subscription->type);
+        if (! $parsed) {
+            return null;
+        }
+
+        if (! Club::find($parsed['club_id'])) {
+            return null;
+        }
+
+        $membership = self::firstOrCreate(
+            [
+                'user_id' => $subscription->user_id,
+                'club_id' => $parsed['club_id'],
+                'role' => $parsed['role'],
+            ],
+            [
+                'status' => self::STATUS_PENDING,
+                'subscription_name' => $subscription->type,
+                'joined_at' => now()->toDateString(),
+            ]
+        );
+
+        $status = self::statusFromCashierSubscription($subscription, $deleted);
+
+        $stripePeriodEnd = null;
+        try {
+            $stripeSub = $subscription->asStripeSubscription();
+            $ts = $stripeSub->current_period_end
+                ?? ($stripeSub->items->data[0]->current_period_end ?? null);
+            if ($ts) {
+                $stripePeriodEnd = Carbon::createFromTimestamp($ts);
+            }
+        } catch (Throwable $e) {
+            $stripePeriodEnd = null;
+        }
+
+        $membership->fill([
+            'subscription_name' => $subscription->type,
+            'stripe_subscription_id' => $subscription->stripe_id,
+            'status' => $status,
+            'subscribed_at' => $membership->subscribed_at ?? now(),
+            'current_period_end' => $stripePeriodEnd,
+            'ends_at' => $subscription->ends_at,
+        ])->save();
+
+        return $membership->fresh();
+    }
+
+    public static function statusFromCashierSubscription(Subscription $subscription, bool $deleted = false): string
+    {
+        if ($deleted) {
+            return self::STATUS_INACTIVE;
+        }
+        if ($subscription->onGracePeriod()) {
+            return self::STATUS_GRACE;
+        }
+        if ($subscription->canceled() && ! $subscription->onGracePeriod()) {
+            return self::STATUS_CANCELLED;
+        }
+        if (in_array($subscription->stripe_status, ['active', 'trialing'], true)) {
+            return self::STATUS_ACTIVE;
+        }
+
+        return self::STATUS_INACTIVE;
+    }
+
+    /**
+     * Fallback cuando el webhook de Cashier no llegó: consulta Stripe directamente,
+     * crea el registro local de Cashier y sincroniza la membresía.
+     */
+    public static function syncFromStripeApi(User $user, string $subscriptionName): ?self
+    {
+        if (! $user->hasStripeId()) {
+            return null;
+        }
+
+        try {
+            $stripe = $user->stripe();
+            $stripeSubs = $stripe->subscriptions->all([
+                'customer' => $user->stripe_id,
+                'status' => 'all',
+                'limit' => 50,
+            ]);
+
+            foreach ($stripeSubs->data as $stripeSub) {
+                $metaName = $stripeSub->metadata['subscription_name'] ?? null;
+                if ($metaName !== $subscriptionName) {
+                    continue;
+                }
+
+                $local = Subscription::where('stripe_id', $stripeSub->id)->first();
+                if (! $local) {
+                    $firstItem = $stripeSub->items->data[0] ?? null;
+                    $local = $user->subscriptions()->create([
+                        'type' => $subscriptionName,
+                        'stripe_id' => $stripeSub->id,
+                        'stripe_status' => $stripeSub->status,
+                        'stripe_price' => $firstItem?->price->id,
+                        'quantity' => $firstItem?->quantity ?? 1,
+                        'trial_ends_at' => $stripeSub->trial_end
+                            ? Carbon::createFromTimestamp($stripeSub->trial_end)
+                            : null,
+                        'ends_at' => null,
+                    ]);
+
+                    foreach ($stripeSub->items->data as $item) {
+                        $local->items()->create([
+                            'stripe_id' => $item->id,
+                            'stripe_product' => $item->price->product ?? '',
+                            'stripe_price' => $item->price->id,
+                            'quantity' => $item->quantity ?? 1,
+                        ]);
+                    }
+                } else {
+                    $local->update(['stripe_status' => $stripeSub->status]);
+                }
+
+                return self::syncFromCashierSubscription($local->fresh());
+            }
+        } catch (Throwable $e) {
+            return null;
+        }
+
+        return null;
     }
 }
