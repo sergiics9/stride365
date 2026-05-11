@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\OpenTopoDataElevation;
 use App\Support\TrackMetrics;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -141,6 +142,42 @@ class Actividad extends Model implements HasMedia
     }
 
     /**
+     * Añade cota (m) a los vértices que solo traen [lng, lat], consultando OpenTopoData (ASTER 30m).
+     * Misma base que el feed: {@see TrackMetrics::positiveElevationGainMFromCoords} con Z en cada punto.
+     */
+    public static function hydrateTrackGeoJsonElevations(mixed $geo): mixed
+    {
+        if (! is_array($geo)) {
+            return $geo;
+        }
+
+        $type = $geo['type'] ?? null;
+
+        if ($type === 'Feature' && isset($geo['geometry']) && is_array($geo['geometry'])) {
+            $geo['geometry'] = self::hydrateGeometryElevations($geo['geometry']);
+
+            return $geo;
+        }
+
+        if ($type === 'FeatureCollection') {
+            $features = $geo['features'] ?? [];
+            if (is_array($features)) {
+                foreach ($features as $k => $feature) {
+                    $geo['features'][$k] = self::hydrateTrackGeoJsonElevations($feature);
+                }
+            }
+
+            return $geo;
+        }
+
+        if ($type === 'LineString' || $type === 'MultiLineString') {
+            return self::hydrateGeometryElevations($geo);
+        }
+
+        return $geo;
+    }
+
+    /**
      * @return list<list<float|int>>
      */
     public static function lineStringRawCoordinatesFromGeoJson(mixed $geo): array
@@ -212,6 +249,102 @@ class Actividad extends Model implements HasMedia
         }
 
         return $out;
+    }
+
+    /**
+     * @param  array{type?: string, coordinates?: mixed}  $geom
+     * @return array{type?: string, coordinates?: mixed}
+     */
+    private static function hydrateGeometryElevations(array $geom): array
+    {
+        $type = $geom['type'] ?? null;
+        if ($type === 'LineString') {
+            $coords = $geom['coordinates'] ?? [];
+            if (is_array($coords)) {
+                $geom['coordinates'] = self::injectElevationsIntoCoordinateList($coords);
+            }
+
+            return $geom;
+        }
+        if ($type === 'MultiLineString') {
+            $lines = $geom['coordinates'] ?? [];
+            $newLines = [];
+            if (is_array($lines)) {
+                foreach ($lines as $line) {
+                    $newLines[] = is_array($line)
+                        ? self::injectElevationsIntoCoordinateList($line)
+                        : $line;
+                }
+            }
+            $geom['coordinates'] = $newLines;
+
+            return $geom;
+        }
+
+        return $geom;
+    }
+
+    /**
+     * @param  list<list<float|int>>  $coords
+     * @return list<list<float|int>>
+     */
+    private static function injectElevationsIntoCoordinateList(array $coords): array
+    {
+        $needIdx = [];
+        $latLngPairs = [];
+        foreach ($coords as $i => $c) {
+            if (! is_array($c) || count($c) < 2) {
+                continue;
+            }
+            if (self::coordinateHasElevationM($c)) {
+                continue;
+            }
+            $needIdx[] = $i;
+            $latLngPairs[] = [(float) $c[1], (float) $c[0]];
+        }
+
+        if (count($needIdx) < 2) {
+            return $coords;
+        }
+
+        $elevations = OpenTopoDataElevation::elevationsForLatLngPairs($latLngPairs);
+        if (count($elevations) !== count($needIdx)) {
+            return $coords;
+        }
+
+        foreach ($needIdx as $k => $i) {
+            $ele = $elevations[$k] ?? null;
+            if ($ele === null || ! is_finite($ele)) {
+                continue;
+            }
+            $z = (int) round($ele);
+            $c = $coords[$i];
+            $n = count($c);
+            if ($n === 2) {
+                $coords[$i] = [(float) $c[0], (float) $c[1], $z];
+            } elseif ($n === 3 && isset($c[2]) && (float) $c[2] > 1_000_000_000) {
+                // [lng, lat, timestamp] → [lng, lat, elev_m, timestamp]
+                $coords[$i] = [(float) $c[0], (float) $c[1], $z, (int) $c[2]];
+            }
+        }
+
+        return $coords;
+    }
+
+    /**
+     * @param  list<float|int>  $c
+     */
+    private static function coordinateHasElevationM(array $c): bool
+    {
+        $n = count($c);
+        if ($n >= 4 && is_numeric($c[2])) {
+            return true;
+        }
+        if ($n === 3 && is_numeric($c[2]) && (float) $c[2] < 1_000_000_000) {
+            return true;
+        }
+
+        return false;
     }
 
     private static function haversineKm(float $lng1, float $lat1, float $lng2, float $lat2): float

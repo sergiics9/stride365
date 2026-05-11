@@ -45,6 +45,7 @@ class ActividadController extends Controller
         $data['modo_creacion'] = $data['modo_creacion'] ?? Actividad::MODO_DIBUJADA;
 
         if (array_key_exists('track_geojson', $data)) {
+            $data['track_geojson'] = Actividad::hydrateTrackGeoJsonElevations($data['track_geojson']);
             $data['distancia'] = Actividad::distanciaKmDesdeTrackGeoJson($data['track_geojson']);
             $data['desnivel_positivo_m'] = Actividad::desnivelPositivoMDesdeTrackGeoJson($data['track_geojson']);
         }
@@ -85,6 +86,7 @@ class ActividadController extends Controller
         unset($data['guia_ids']);
 
         if (array_key_exists('track_geojson', $data)) {
+            $data['track_geojson'] = Actividad::hydrateTrackGeoJsonElevations($data['track_geojson']);
             $data['distancia'] = Actividad::distanciaKmDesdeTrackGeoJson($data['track_geojson']);
             $data['desnivel_positivo_m'] = Actividad::desnivelPositivoMDesdeTrackGeoJson($data['track_geojson']);
         }

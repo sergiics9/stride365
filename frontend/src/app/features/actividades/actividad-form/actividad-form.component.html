@@ -39,7 +39,8 @@
           </fieldset>
           <p class="small text-muted mb-0">
             @if (modoActual() === 'dibujada') {
-              Haz clic en el mapa para marcar el recorrido. La distancia se calcula sola al tener al menos dos puntos.
+              Haz clic en el mapa para marcar el recorrido. La distancia se calcula sola al tener al menos dos puntos; el
+              desnivel positivo se estima al guardar (mismo criterio que el feed: cotas por modelo de elevación ASTER 30&nbsp;m).
             } @else {
               Sube un GPX; el mapa muestra la ruta y se calculan distancia y desnivel positivo si el archivo incluye altitud.
             }
@@ -68,6 +69,8 @@
           <div class="form-control bg-light small d-flex align-items-center" aria-live="polite">
             @if (desnivelPreviewM() !== null) {
               <strong>{{ desnivelPreviewM() }}</strong>&nbsp;m (aprox., al guardar se confirma en servidor)
+            } @else if (modoActual() === 'dibujada') {
+              <span class="text-muted">— (se calcula al guardar; requiere que el backend pueda consultar OpenTopoData)</span>
             } @else {
               <span class="text-muted">— (GPX con &lt;ele&gt; o ruta con cotas)</span>
             }
