@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: '/api',
+  apiUrl: 'https://thumping-denatured-supremacy.ngrok-free.dev/api',
   inactivityTimeoutMs: 30 * 60 * 1000,
   pricing: {
     club: {
