@@ -1,285 +1,215 @@
 <div class="card shadow-sm border-0 mx-auto" style="max-width: 560px">
   <div class="card-body p-4 p-md-5">
     <h1 class="h3 fw-semibold mb-1">Crear cuenta</h1>
-    <p class="text-muted small mb-4">Regístrate como socio para empezar a usar TFG Clubes</p>
+    <p class="text-muted small mb-4">Regístrate como socio para empezar a usar Stride365</p>
 
     @if (serverError(); as err) {
-      @if (!err.errors) {
-        <div class="alert alert-danger small" role="alert">{{ err.message }}</div>
-      }
+    @if (!err.errors) {
+    <div class="alert alert-danger small" role="alert">{{ err.message }}</div>
+    }
     }
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
       <div class="row g-3">
         <div class="col-md-6">
           <label for="nombre" class="form-label">Nombre</label>
-          <input
-            id="nombre"
-            type="text"
-            class="form-control"
-            formControlName="nombre"
-            autocomplete="given-name"
+          <input id="nombre" type="text" class="form-control" formControlName="nombre" autocomplete="given-name"
             [class.is-invalid]="
               (form.controls.nombre.touched && form.controls.nombre.invalid) || !!nombreError()
-            "
-          />
+            " />
           @if (form.controls.nombre.touched && form.controls.nombre.errors; as e) {
-            <div class="invalid-feedback">
-              @if (e['required']) {
-                El nombre es obligatorio.
-              } @else if (e['maxlength']) {
-                Máximo 255 caracteres.
-              }
-            </div>
+          <div class="invalid-feedback">
+            @if (e['required']) {
+            El nombre es obligatorio.
+            } @else if (e['maxlength']) {
+            Máximo 255 caracteres.
+            }
+          </div>
           }
           @if (nombreError()) {
-            <div class="invalid-feedback d-block">{{ nombreError() }}</div>
+          <div class="invalid-feedback d-block">{{ nombreError() }}</div>
           }
         </div>
 
         <div class="col-md-6">
           <label for="apellido" class="form-label">Apellido</label>
-          <input
-            id="apellido"
-            type="text"
-            class="form-control"
-            formControlName="apellido"
-            autocomplete="family-name"
+          <input id="apellido" type="text" class="form-control" formControlName="apellido" autocomplete="family-name"
             [class.is-invalid]="
               (form.controls.apellido.touched && form.controls.apellido.invalid) ||
               !!apellidoError()
-            "
-          />
+            " />
           @if (form.controls.apellido.touched && form.controls.apellido.errors; as e) {
-            <div class="invalid-feedback">
-              @if (e['required']) {
-                El apellido es obligatorio.
-              } @else if (e['maxlength']) {
-                Máximo 255 caracteres.
-              }
-            </div>
+          <div class="invalid-feedback">
+            @if (e['required']) {
+            El apellido es obligatorio.
+            } @else if (e['maxlength']) {
+            Máximo 255 caracteres.
+            }
+          </div>
           }
           @if (apellidoError()) {
-            <div class="invalid-feedback d-block">{{ apellidoError() }}</div>
+          <div class="invalid-feedback d-block">{{ apellidoError() }}</div>
           }
         </div>
 
         <div class="col-12">
           <label for="email" class="form-label">Correo electrónico</label>
-          <input
-            id="email"
-            type="email"
-            class="form-control"
-            formControlName="email"
-            autocomplete="email"
+          <input id="email" type="email" class="form-control" formControlName="email" autocomplete="email"
             [class.is-invalid]="
               (form.controls.email.touched && form.controls.email.invalid) || !!emailError()
-            "
-          />
+            " />
           @if (form.controls.email.touched && form.controls.email.errors; as e) {
-            <div class="invalid-feedback">
-              @if (e['required']) {
-                El correo es obligatorio.
-              } @else if (e['email']) {
-                Introduce un correo válido.
-              } @else if (e['maxlength']) {
-                Máximo 255 caracteres.
-              }
-            </div>
+          <div class="invalid-feedback">
+            @if (e['required']) {
+            El correo es obligatorio.
+            } @else if (e['email']) {
+            Introduce un correo válido.
+            } @else if (e['maxlength']) {
+            Máximo 255 caracteres.
+            }
+          </div>
           }
           @if (emailError()) {
-            <div class="invalid-feedback d-block">{{ emailError() }}</div>
+          <div class="invalid-feedback d-block">{{ emailError() }}</div>
           }
         </div>
 
         <div class="col-md-6">
           <label for="telefono" class="form-label">Teléfono <span class="text-muted small">(opcional)</span></label>
-          <input
-            id="telefono"
-            type="tel"
-            class="form-control"
-            formControlName="telefono"
-            autocomplete="tel"
+          <input id="telefono" type="tel" class="form-control" formControlName="telefono" autocomplete="tel"
             [class.is-invalid]="
               (form.controls.telefono.touched && form.controls.telefono.invalid) ||
               !!telefonoError()
-            "
-          />
+            " />
           @if (form.controls.telefono.touched && form.controls.telefono.errors; as e) {
-            <div class="invalid-feedback">
-              @if (e['maxlength']) {
-                Máximo 50 caracteres.
-              }
-            </div>
+          <div class="invalid-feedback">
+            @if (e['maxlength']) {
+            Máximo 50 caracteres.
+            }
+          </div>
           }
           @if (telefonoError()) {
-            <div class="invalid-feedback d-block">{{ telefonoError() }}</div>
+          <div class="invalid-feedback d-block">{{ telefonoError() }}</div>
           }
         </div>
 
         <div class="col-md-6">
           <label for="sexo" class="form-label">Sexo <span class="text-muted small">(opcional)</span></label>
-          <select
-            id="sexo"
-            class="form-select"
-            formControlName="sexo"
-            [class.is-invalid]="!!sexoError()"
-          >
+          <select id="sexo" class="form-select" formControlName="sexo" [class.is-invalid]="!!sexoError()">
             <option value="">Prefiero no indicarlo</option>
             <option value="M">Masculino</option>
             <option value="F">Femenino</option>
             <option value="O">Otro</option>
           </select>
           @if (sexoError()) {
-            <div class="invalid-feedback d-block">{{ sexoError() }}</div>
+          <div class="invalid-feedback d-block">{{ sexoError() }}</div>
           }
         </div>
 
         <div class="col-md-6">
-          <label for="fecha_nacimiento" class="form-label">Fecha de nacimiento <span class="text-muted small">(opcional)</span></label>
-          <input
-            id="fecha_nacimiento"
-            type="date"
-            class="form-control"
-            formControlName="fecha_nacimiento"
-            [class.is-invalid]="!!fechaNacimientoError()"
-          />
+          <label for="fecha_nacimiento" class="form-label">Fecha de nacimiento <span
+              class="text-muted small">(opcional)</span></label>
+          <input id="fecha_nacimiento" type="date" class="form-control" formControlName="fecha_nacimiento"
+            [class.is-invalid]="!!fechaNacimientoError()" />
           @if (fechaNacimientoError()) {
-            <div class="invalid-feedback d-block">{{ fechaNacimientoError() }}</div>
+          <div class="invalid-feedback d-block">{{ fechaNacimientoError() }}</div>
           }
         </div>
 
         <div class="col-12">
           <label for="direccion" class="form-label">Dirección <span class="text-muted small">(opcional)</span></label>
-          <input
-            id="direccion"
-            type="text"
-            class="form-control"
-            formControlName="direccion"
-            autocomplete="street-address"
-            [class.is-invalid]="
+          <input id="direccion" type="text" class="form-control" formControlName="direccion"
+            autocomplete="street-address" [class.is-invalid]="
               (form.controls.direccion.touched && form.controls.direccion.invalid) ||
               !!direccionError()
-            "
-          />
+            " />
           @if (form.controls.direccion.touched && form.controls.direccion.errors; as e) {
-            <div class="invalid-feedback">
-              @if (e['maxlength']) {
-                Máximo 500 caracteres.
-              }
-            </div>
+          <div class="invalid-feedback">
+            @if (e['maxlength']) {
+            Máximo 500 caracteres.
+            }
+          </div>
           }
           @if (direccionError()) {
-            <div class="invalid-feedback d-block">{{ direccionError() }}</div>
+          <div class="invalid-feedback d-block">{{ direccionError() }}</div>
           }
         </div>
 
         <div class="col-12">
           <label for="foto" class="form-label">Foto de perfil <span class="text-muted small">(opcional)</span></label>
-          <input
-            #fotoInput
-            id="foto"
-            type="file"
-            class="form-control"
+          <input #fotoInput id="foto" type="file" class="form-control"
             accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
-            (change)="onFotoSelected($event)"
-          />
+            (change)="onFotoSelected($event)" />
           <div class="form-text">JPEG, PNG, WebP o GIF, máximo 2 MB.</div>
           @if (fotoClientError(); as ce) {
-            <div class="invalid-feedback d-block">{{ ce }}</div>
+          <div class="invalid-feedback d-block">{{ ce }}</div>
           }
           @if (fotoError()) {
-            <div class="invalid-feedback d-block">{{ fotoError() }}</div>
+          <div class="invalid-feedback d-block">{{ fotoError() }}</div>
           }
           @if (fotoPreviewUrl(); as src) {
-            <div class="d-flex align-items-center gap-2 mt-2">
-              <img
-                [src]="src"
-                width="64"
-                height="64"
-                class="rounded-circle border"
-                style="object-fit: cover"
-                alt="Vista previa de la foto"
-              />
-              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearFoto(fotoInput)">
-                Quitar foto
-              </button>
-            </div>
+          <div class="d-flex align-items-center gap-2 mt-2">
+            <img [src]="src" width="64" height="64" class="rounded-circle border" style="object-fit: cover"
+              alt="Vista previa de la foto" />
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearFoto(fotoInput)">
+              Quitar foto
+            </button>
+          </div>
           }
         </div>
 
         <div class="col-md-6">
           <div class="d-flex justify-content-between align-items-center">
             <label for="password" class="form-label">Contraseña</label>
-            <button
-              type="button"
-              class="btn btn-link btn-sm p-0 text-decoration-none"
-              (click)="togglePassword()"
-            >
+            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" (click)="togglePassword()">
               {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
             </button>
           </div>
-          <input
-            id="password"
-            [type]="showPassword() ? 'text' : 'password'"
-            class="form-control"
-            formControlName="password"
-            autocomplete="new-password"
-            [class.is-invalid]="
+          <input id="password" [type]="showPassword() ? 'text' : 'password'" class="form-control"
+            formControlName="password" autocomplete="new-password" [class.is-invalid]="
               (form.controls.password.touched && form.controls.password.invalid) ||
               !!passwordError()
-            "
-          />
+            " />
           @if (form.controls.password.touched && form.controls.password.errors; as e) {
-            <div class="invalid-feedback">
-              @if (e['required']) {
-                La contraseña es obligatoria.
-              } @else if (e['minlength']) {
-                Mínimo 8 caracteres.
-              }
-            </div>
+          <div class="invalid-feedback">
+            @if (e['required']) {
+            La contraseña es obligatoria.
+            } @else if (e['minlength']) {
+            Mínimo 8 caracteres.
+            }
+          </div>
           }
           @if (passwordError()) {
-            <div class="invalid-feedback d-block">{{ passwordError() }}</div>
+          <div class="invalid-feedback d-block">{{ passwordError() }}</div>
           }
         </div>
 
         <div class="col-12">
           <label for="password_confirmation" class="form-label">Confirmar contraseña</label>
-          <input
-            id="password_confirmation"
-            [type]="showPassword() ? 'text' : 'password'"
-            class="form-control"
-            formControlName="password_confirmation"
-            autocomplete="new-password"
-            [class.is-invalid]="
+          <input id="password_confirmation" [type]="showPassword() ? 'text' : 'password'" class="form-control"
+            formControlName="password_confirmation" autocomplete="new-password" [class.is-invalid]="
               form.controls.password_confirmation.touched &&
               form.controls.password_confirmation.invalid
-            "
-          />
+            " />
           @if (
-            form.controls.password_confirmation.touched &&
-            form.controls.password_confirmation.errors;
-            as e
+          form.controls.password_confirmation.touched &&
+          form.controls.password_confirmation.errors;
+          as e
           ) {
-            <div class="invalid-feedback">
-              @if (e['required']) {
-                Confirma la contraseña.
-              } @else if (e['mismatch']) {
-                Las contraseñas no coinciden.
-              }
-            </div>
+          <div class="invalid-feedback">
+            @if (e['required']) {
+            Confirma la contraseña.
+            } @else if (e['mismatch']) {
+            Las contraseñas no coinciden.
+            }
+          </div>
           }
         </div>
       </div>
 
-      <button
-        type="submit"
-        class="btn btn-primary w-100 mt-4"
-        [disabled]="submitting() || form.invalid"
-      >
+      <button type="submit" class="btn btn-primary w-100 mt-4" [disabled]="submitting() || form.invalid">
         @if (submitting()) {
-          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
         }
         Crear cuenta
       </button>

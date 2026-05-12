@@ -21,10 +21,10 @@ class SubscriptionController extends Controller
 
         $visibleStatuses = [ClubUser::STATUS_PENDING, ClubUser::STATUS_ACTIVE, ClubUser::STATUS_GRACE];
 
-        $buildQuery = fn () => $user->memberships()
+        $buildQuery = fn() => $user->memberships()
             ->with('club:id,nombre,slug,logo_url,active,application_status')
             ->whereIn('status', $visibleStatuses)
-            ->whereHas('club', fn ($q) => $q->where('application_status', '!=', Club::STATUS_REJECTED))
+            ->whereHas('club', fn($q) => $q->where('application_status', '!=', Club::STATUS_REJECTED))
             ->orderBy('role')
             ->orderBy('club_id');
 
@@ -51,8 +51,10 @@ class SubscriptionController extends Controller
                 if (! $sub) {
                     continue;
                 }
-                if ($membership->status === ClubUser::STATUS_PENDING
-                    && in_array($sub->stripe_status, ['active', 'trialing'], true)) {
+                if (
+                    $membership->status === ClubUser::STATUS_PENDING
+                    && in_array($sub->stripe_status, ['active', 'trialing'], true)
+                ) {
                     ClubUser::syncFromCashierSubscription($sub);
                     $synced = true;
 
@@ -71,11 +73,11 @@ class SubscriptionController extends Controller
             $rows = $buildQuery()->get();
         }
 
-        $items = $rows->map(fn (ClubUser $m) => $this->serializeMembership($m));
+        $items = $rows->map(fn(ClubUser $m) => $this->serializeMembership($m));
 
         return response()->json([
             'memberships' => $items,
-            'has_admin_membership' => $rows->contains(fn ($m) => $m->role === ClubUser::ROLE_ADMIN),
+            'has_admin_membership' => $rows->contains(fn($m) => $m->role === ClubUser::ROLE_ADMIN),
         ]);
     }
 
@@ -144,7 +146,7 @@ class SubscriptionController extends Controller
         $checkout = $user
             ->newSubscription($name, $priceId)
             ->checkout([
-                'success_url' => $validated['success_url'].$separator.'session_id={CHECKOUT_SESSION_ID}',
+                'success_url' => $validated['success_url'] . $separator . 'session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => $validated['cancel_url'],
                 'metadata' => [
                     'subscription_name' => $name,
@@ -236,7 +238,7 @@ class SubscriptionController extends Controller
             return response()->json([]);
         }
 
-        $invoices = $user->invoices()->map(fn ($invoice) => [
+        $invoices = $user->invoices()->map(fn($invoice) => [
             'id' => $invoice->id,
             'number' => $invoice->number,
             'total' => $invoice->total(),
@@ -252,7 +254,7 @@ class SubscriptionController extends Controller
     {
         return $request->user()->downloadInvoice($invoice, [
             'vendor' => config('app.name'),
-            'product' => 'Suscripción TFG Clubes',
+            'product' => 'Suscripción Stride365',
         ]);
     }
 

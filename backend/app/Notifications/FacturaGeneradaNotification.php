@@ -23,15 +23,15 @@ class FacturaGeneradaNotification extends Notification
         $number = $this->invoice->asStripeInvoice()->number ?? $this->invoice->asStripeInvoice()->id;
         $total = $this->invoice->total();
 
-        $filename = 'factura-'.($number ?? 'suscripcion').'.pdf';
+        $filename = 'factura-' . ($number ?? 'suscripcion') . '.pdf';
 
         $pdf = $this->invoice->pdf([
             'vendor' => config('app.name'),
-            'product' => 'Suscripción TFG Clubes',
+            'product' => 'Suscripción Stride365',
         ]);
 
         return (new MailMessage)
-            ->subject('Factura de tu suscripción - '.$number)
+            ->subject('Factura de tu suscripción - ' . $number)
             ->view('mail.factura-generada', [
                 'notifiable' => $notifiable,
                 'number' => $number,
