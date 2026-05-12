@@ -25,6 +25,7 @@ import {
   Socio,
   UpdateActividadRequest,
 } from '../../../shared/models';
+import { loadLeaflet } from '../../../shared/utils/leaflet-loader.util';
 import { findResolvedClub, resolvedClub$ } from '../../../shared/utils/resolved-club-from-route.util';
 import { toApiError } from '../../../shared/utils/api-error.util';
 import { SociosService } from '../../socios/socios.service';
@@ -198,7 +199,7 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
   private async initMap(): Promise<void> {
     const el = this.mapEl()?.nativeElement;
     if (!el || this.map) return;
-    const L = await import('leaflet');
+    const L = await loadLeaflet();
     this.map = L.map(el).setView([41.39, 2.16], 11);
     L.tileLayer(OSM_TILE_LAYER_URL, {
       attribution: OSM_ATTRIBUTION,
@@ -212,7 +213,7 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
     if (!this.map) return;
     this.detachClickHandler();
     if (modo === 'dibujada') {
-      const L = await import('leaflet');
+      const L = await loadLeaflet();
       this.clickHandler = (e: any) => {
         const next = [...this.trackPoints(), [e.latlng.lat, e.latlng.lng] as Coord];
         this.trackPoints.set(next);
@@ -250,7 +251,7 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
       return;
     }
     this.trackPoints.set(points);
-    const L = await import('leaflet');
+    const L = await loadLeaflet();
     if (this.polyline) {
       this.polyline.setLatLngs(points.map((p) => L.latLng(p[0], p[1])));
       const bounds = this.polyline.getBounds?.();
@@ -323,7 +324,7 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
     if (a.track_geojson) {
       const coords = this.geoJsonToPoints(a.track_geojson);
       this.trackPoints.set(coords);
-      const L = await import('leaflet');
+      const L = await loadLeaflet();
       if (this.polyline) {
         this.polyline.setLatLngs(coords.map((p) => L.latLng(p[0], p[1])));
         const bounds = this.polyline.getBounds?.();

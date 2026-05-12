@@ -22,6 +22,7 @@ import {
   formatPaceMinPerKm,
 } from '../../../shared/utils/activity-metrics-display.util';
 import { stripGeoJsonCoordinatesTo2D } from '../../../shared/utils/geojson-2d.util';
+import { loadLeaflet } from '../../../shared/utils/leaflet-loader.util';
 
 interface MapBundle {
   L: typeof import('leaflet');
@@ -119,7 +120,7 @@ export class FeedDetailComponent implements AfterViewInit {
     this.mapStatus.set('loading');
     try {
       if (!this.mapBundle) {
-        const L = await import('leaflet');
+        const L = await loadLeaflet();
         this.mapBundle = { L };
       }
       const { L } = this.mapBundle;
@@ -150,7 +151,7 @@ export class FeedDetailComponent implements AfterViewInit {
 
     try {
       if (!this.mapBundle) {
-        const L = await import('leaflet');
+        const L = await loadLeaflet();
         await import('leaflet-gpx');
         this.mapBundle = { L };
       }

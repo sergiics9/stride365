@@ -13,6 +13,7 @@ import {
 
 import { OSM_ATTRIBUTION, OSM_TILE_LAYER_URL } from '../../map/osm-tiles';
 import { stripGeoJsonCoordinatesTo2D } from '../../utils/geojson-2d.util';
+import { loadLeaflet } from '../../utils/leaflet-loader.util';
 import { extractLngLatPairsFromTrackGeoJson } from '../../utils/track-geojson-coords.util';
 
 @Component({
@@ -146,7 +147,7 @@ export class MiniTrackThumbnailComponent {
       return;
     }
 
-    const L = await import('leaflet');
+    const L = await loadLeaflet();
     if (gen !== this.syncGeneration || !el.isConnected) {
       return;
     }

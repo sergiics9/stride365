@@ -16,6 +16,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs/operators';
 
 import { stripGeoJsonCoordinatesTo2D } from '../../../shared/utils/geojson-2d.util';
+import { loadLeaflet } from '../../../shared/utils/leaflet-loader.util';
 import { AuthService } from '../../../core/auth/auth.service';
 import { OSM_ATTRIBUTION, OSM_TILE_LAYER_URL } from '../../../shared/map/osm-tiles';
 import { ToastService } from '../../../core/toast/toast.service';
@@ -121,7 +122,7 @@ export class ActividadDetailComponent implements AfterViewInit, OnDestroy {
     const a = this.actividad();
     const el = this.mapEl()?.nativeElement;
     if (!a?.track_geojson || !el) return;
-    const L = await import('leaflet');
+    const L = await loadLeaflet();
     if (!this.map) {
       this.map = L.map(el).setView([41.39, 2.16], 11);
       L.tileLayer(OSM_TILE_LAYER_URL, {
