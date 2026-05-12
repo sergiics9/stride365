@@ -10,16 +10,18 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const isApiCall = req.url.startsWith(environment.apiUrl) || req.url.startsWith('/api');
 
-  if (!token || !isApiCall) {
+  if (!isApiCall) {
     return next(req);
   }
 
-  const authReq = req.clone({
-    setHeaders: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/json',
-    },
-  });
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'ngrok-skip-browser-warning': 'true',
+  };
 
-  return next(authReq);
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  return next(req.clone({ setHeaders: headers }));
 };
