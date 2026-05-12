@@ -14,7 +14,6 @@ class Comunicado extends Model
 
     protected $fillable = [
         'club_id',
-        'grupo_id',
         'user_id',
         'titulo',
         'contenido',
@@ -28,11 +27,6 @@ class Comunicado extends Model
     public function club(): BelongsTo
     {
         return $this->belongsTo(Club::class);
-    }
-
-    public function grupo(): BelongsTo
-    {
-        return $this->belongsTo(Grupo::class);
     }
 
     public function user(): BelongsTo

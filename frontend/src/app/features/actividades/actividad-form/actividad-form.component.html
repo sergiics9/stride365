@@ -131,6 +131,39 @@
           <textarea class="form-control" rows="3" formControlName="descripcion"></textarea>
         </div>
 
+        @if (club()) {
+          <div class="col-12">
+            <label class="form-label d-block">Guías de la salida</label>
+            <p class="small text-muted mb-2">
+              Elige qué <strong>socios guía</strong> del club coordinan esta actividad (deben tener el rol de guía activo en el
+              club).
+            </p>
+            @if (guiasDisponibles().length === 0) {
+              <div class="alert alert-light border small mb-0" role="status">
+                No hay socios marcados como guía en este club. Desde la lista de socios puedes activar «Guía» en un socio.
+              </div>
+            } @else {
+              <ul class="list-group list-group-flush border rounded">
+                @for (s of guiasDisponibles(); track s.id) {
+                  <li class="list-group-item d-flex align-items-center gap-2 py-2">
+                    <input
+                      class="form-check-input m-0"
+                      type="checkbox"
+                      [id]="'guia-' + s.user_id"
+                      [checked]="isGuiaSelected(s.user_id)"
+                      (change)="toggleGuiaUsuario(s.user_id, $any($event.target).checked)"
+                    />
+                    <label class="form-check-label flex-grow-1 mb-0 small" [for]="'guia-' + s.user_id">
+                      {{ s.user?.nombre }} {{ s.user?.apellido }}
+                      <span class="text-muted">({{ s.user?.email }})</span>
+                    </label>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+
         <div class="col-12">
           <label class="form-label d-block">Mapa del recorrido</label>
           @if (modoActual() === 'importada') {

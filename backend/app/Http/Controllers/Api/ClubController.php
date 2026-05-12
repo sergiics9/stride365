@@ -20,7 +20,7 @@ class ClubController extends Controller
                 'memberships as socios_count' => fn ($q) => $q
                     ->where('role', ClubUser::ROLE_SOCIO)
                     ->whereIn('status', [ClubUser::STATUS_ACTIVE, ClubUser::STATUS_GRACE]),
-                'grupos',
+                'comunicados',
                 'actividades',
             ]);
 
@@ -62,7 +62,7 @@ class ClubController extends Controller
                 'memberships as socios_count' => fn ($q) => $q
                     ->where('role', ClubUser::ROLE_SOCIO)
                     ->whereIn('status', [ClubUser::STATUS_ACTIVE, ClubUser::STATUS_GRACE]),
-                'grupos',
+                'comunicados',
                 'actividades',
             ])
         );

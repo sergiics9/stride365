@@ -30,7 +30,6 @@ class StoreComunicadoRequest extends FormRequest
             'titulo' => ['required', 'string', 'max:255'],
             'contenido' => ['required', 'string'],
             'fecha_publicacion' => ['nullable', 'date'],
-            'grupo_id' => ['nullable', 'integer', 'exists:grupos,id'],
         ];
     }
 }

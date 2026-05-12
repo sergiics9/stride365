@@ -18,9 +18,16 @@ import { map } from 'rxjs/operators';
 
 import { ToastService } from '../../../core/toast/toast.service';
 import { OSM_ATTRIBUTION, OSM_TILE_LAYER_URL } from '../../../shared/map/osm-tiles';
-import { Actividad, ModoCreacion } from '../../../shared/models';
+import {
+  Actividad,
+  CreateActividadRequest,
+  ModoCreacion,
+  Socio,
+  UpdateActividadRequest,
+} from '../../../shared/models';
 import { findResolvedClub, resolvedClub$ } from '../../../shared/utils/resolved-club-from-route.util';
 import { toApiError } from '../../../shared/utils/api-error.util';
+import { SociosService } from '../../socios/socios.service';
 import { ActividadesService } from '../actividades.service';
 
 type Coord = [number, number] | [number, number, number];
@@ -72,6 +79,7 @@ function polylineLengthKm(points: Coord[]): number {
 export class ActividadFormComponent implements AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly service = inject(ActividadesService);
+  private readonly socios = inject(SociosService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -104,6 +112,11 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
   protected readonly modoActual = signal<ModoCreacion>('dibujada');
   protected readonly submitting = signal(false);
   protected readonly serverError = signal<string | null>(null);
+
+  /** Socios del club con rol guía (`is_guide`), para asignar a la actividad. */
+  protected readonly guiasDisponibles = signal<Socio[]>([]);
+  /** IDs de usuario (`users.id`) enlazados en `actividad_guia`. */
+  protected readonly guiaUserIdsSeleccionados = signal<number[]>([]);
 
   protected readonly hasTrack = computed(() => this.trackPoints().length >= 2);
 
@@ -138,6 +151,20 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
       const c = this.club();
       if (id && c) {
         void this.loadEditData(c.id, id);
+      }
+    });
+
+    effect(() => {
+      const c = this.club();
+      const editing = this.editId();
+      if (c) {
+        void this.loadGuiasDelClub(c.id);
+        if (!editing) {
+          this.guiaUserIdsSeleccionados.set([]);
+        }
+      } else {
+        this.guiasDisponibles.set([]);
+        this.guiaUserIdsSeleccionados.set([]);
       }
     });
 
@@ -291,6 +318,7 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
       { emitEvent: false },
     );
     this.modoActual.set(modo);
+    this.guiaUserIdsSeleccionados.set(a.guias?.map((g) => g.id) ?? []);
 
     if (a.track_geojson) {
       const coords = this.geoJsonToPoints(a.track_geojson);
@@ -359,6 +387,36 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
     };
   }
 
+  private async loadGuiasDelClub(clubId: number): Promise<void> {
+    try {
+      const first = await this.socios.fetchPage(clubId, { guide: true, page: 1 });
+      const all: Socio[] = [...first.data];
+      for (let p = 2; p <= first.last_page; p++) {
+        const next = await this.socios.fetchPage(clubId, { guide: true, page: p });
+        all.push(...next.data);
+      }
+      this.guiasDisponibles.set(all);
+    } catch {
+      this.guiasDisponibles.set([]);
+    }
+  }
+
+  protected toggleGuiaUsuario(userId: number, checked: boolean): void {
+    const cur = this.guiaUserIdsSeleccionados();
+    if (checked) {
+      if (cur.includes(userId)) {
+        return;
+      }
+      this.guiaUserIdsSeleccionados.set([...cur, userId]);
+    } else {
+      this.guiaUserIdsSeleccionados.set(cur.filter((id) => id !== userId));
+    }
+  }
+
+  protected isGuiaSelected(userId: number): boolean {
+    return this.guiaUserIdsSeleccionados().includes(userId);
+  }
+
   protected fieldError(name: string): string | null {
     const ctrl = this.form.get(name);
     if (!ctrl?.touched && !ctrl?.dirty) return null;
@@ -389,7 +447,8 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
 
     const v = this.form.getRawValue();
     const dist = this.trackDistanceKm();
-    const payload = {
+    const guia_ids = this.guiaUserIdsSeleccionados();
+    const base: CreateActividadRequest = {
       titulo: v.titulo,
       descripcion: v.descripcion || null,
       fecha_inicio: v.fecha_inicio,
@@ -405,15 +464,18 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
       modo_creacion: v.modo_creacion as ModoCreacion,
       track_geojson: track,
     };
+    const id = this.editId();
 
     try {
       let result: Actividad;
-      const id = this.editId();
       if (id) {
-        result = await this.service.update(c.id, id, payload);
+        const updatePayload: UpdateActividadRequest = { ...base, guia_ids };
+        result = await this.service.update(c.id, id, updatePayload);
         this.toast.success('Actividad actualizada.');
       } else {
-        result = await this.service.create(c.id, payload);
+        const createPayload: CreateActividadRequest =
+          guia_ids.length > 0 ? { ...base, guia_ids } : base;
+        result = await this.service.create(c.id, createPayload);
         this.toast.success('Actividad creada.');
       }
       this.router.navigate(['/clubes', c.id, 'actividades', result.id]);

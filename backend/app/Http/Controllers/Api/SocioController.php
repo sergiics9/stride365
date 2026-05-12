@@ -17,7 +17,7 @@ class SocioController extends Controller
 {
     public function index(Request $request, Club $club): JsonResponse
     {
-        $this->authorizeClub($request, $club);
+        $this->authorizeSociosIndex($request, $club);
 
         $query = $club->memberships()
             ->where('role', ClubUser::ROLE_SOCIO)
@@ -162,6 +162,35 @@ class SocioController extends Controller
         if ($user->hasRole('super_admin')) {
             return;
         }
+        abort_unless($user->isAdminOfClub($club->id), 403, 'No administras este club.');
+    }
+
+    /**
+     * Listado de socios: solo admins salvo petición explícita de socios-guía
+     * (asignación en actividades), donde también puede acceder un guía del club.
+     */
+    private function authorizeSociosIndex(Request $request, Club $club): void
+    {
+        $user = $request->user();
+        abort_unless($user, 401);
+
+        if ($user->hasRole('super_admin')) {
+            return;
+        }
+
+        $onlyGuides = $request->has('guide')
+            && filter_var($request->query('guide'), FILTER_VALIDATE_BOOLEAN);
+
+        if ($onlyGuides) {
+            abort_unless(
+                $user->isAdminOfClub($club->id) || $user->isGuideOfClub($club->id),
+                403,
+                'No administras este club.'
+            );
+
+            return;
+        }
+
         abort_unless($user->isAdminOfClub($club->id), 403, 'No administras este club.');
     }
 

@@ -18,7 +18,7 @@ export interface Club {
   created_at?: string;
   updated_at?: string;
   socios_count?: number;
-  grupos_count?: number;
+  comunicados_count?: number;
   actividades_count?: number;
 }
 

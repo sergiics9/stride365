@@ -120,11 +120,6 @@ class Club extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    public function grupos(): HasMany
-    {
-        return $this->hasMany(Grupo::class);
-    }
-
     public function actividades(): HasMany
     {
         return $this->hasMany(Actividad::class);
