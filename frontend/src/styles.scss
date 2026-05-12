@@ -1,4 +1,7 @@
+@use 'sass:color';
 @use 'styles/variables' as *;
+
+// ─── Bootstrap con la paleta de la marca ────────────────────────────────
 @use 'bootstrap/scss/bootstrap' with (
   $primary: $primary,
   $secondary: $secondary,
@@ -13,8 +16,36 @@
   $border-radius: $border-radius,
   $border-radius-sm: $border-radius-sm,
   $border-radius-lg: $border-radius-lg,
-  $font-family-sans-serif: $font-family-sans-serif
+  $font-family-sans-serif: $font-family-sans-serif,
+  $enable-shadows: false,
+  $enable-gradients: false,
+  $card-border-color: $ink-150,
+  $card-cap-bg: $white,
+  $input-border-color: $ink-150,
+  $input-focus-border-color: $brand-400,
+  $input-btn-focus-color: rgba($brand-500, 0.25),
+  $link-color: $brand-600,
+  $link-hover-color: $brand-700
 );
+
+// ─── Tipografía premium ─────────────────────────────────────────────────
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap');
+
+:root {
+  // tokens — expuestos por si algún componente quiere consumirlos
+  --s365-ink-950: #{$ink-950};
+  --s365-ink-900: #{$ink-900};
+  --s365-ink-700: #{$ink-700};
+  --s365-ink-500: #{$ink-500};
+  --s365-ink-300: #{$ink-300};
+  --s365-ink-150: #{$ink-150};
+  --s365-ink-50:  #{$ink-50};
+  --s365-brand:   #{$brand-500};
+  --s365-brand-700: #{$brand-700};
+  --s365-shadow-sm: 0 1px 2px rgba(11, 13, 16, 0.04), 0 1px 1px rgba(11, 13, 16, 0.03);
+  --s365-shadow-md: 0 6px 18px rgba(11, 13, 16, 0.06), 0 2px 4px rgba(11, 13, 16, 0.04);
+  --s365-shadow-lg: 0 18px 40px rgba(11, 13, 16, 0.10), 0 4px 12px rgba(11, 13, 16, 0.05);
+}
 
 html,
 body {
@@ -24,9 +55,401 @@ body {
 body {
   margin: 0;
   font-family: $font-family-sans-serif;
+  background:
+    radial-gradient(1200px 600px at 90% -10%, rgba($brand-500, 0.06), transparent 60%),
+    radial-gradient(900px 500px at -10% 0%, rgba($ink-900, 0.04), transparent 60%),
+    $body-bg;
+  color: $ink-900;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: 'Manrope', $font-family-sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: $ink-950;
+}
+
+.display-1, .display-2, .display-3, .display-4 {
+  font-family: 'Manrope', $font-family-sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+a { transition: color 0.15s ease; }
+
+.text-muted { color: $ink-400 !important; }
+
+hr { border-color: $ink-150; opacity: 1; }
 
 .is-loading {
   pointer-events: none;
   opacity: 0.6;
+}
+
+// ─── Navbar ─────────────────────────────────────────────────────────────
+.navbar.bg-dark {
+  background: linear-gradient(180deg, $ink-950 0%, $ink-900 100%) !important;
+  border-bottom: 1px solid rgba($white, 0.06) !important;
+  backdrop-filter: saturate(140%) blur(8px);
+}
+
+.navbar-dark {
+  .navbar-brand {
+    font-family: 'Manrope', $font-family-sans-serif;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: $white;
+    position: relative;
+    padding-left: 0.25rem;
+
+    // acento azul deportivo a la izquierda del logo
+    &::before {
+      content: '';
+      position: absolute;
+      left: -0.65rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 1.1rem;
+      border-radius: 2px;
+      background: linear-gradient(180deg, $brand-400, $brand-600);
+      box-shadow: 0 0 12px rgba($brand-500, 0.6);
+    }
+  }
+
+  .nav-link {
+    color: rgba($white, 0.72);
+    font-weight: 500;
+    padding: 0.5rem 0.85rem;
+    border-radius: $border-radius-sm;
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .nav-link:hover,
+  .nav-link:focus {
+    color: $white;
+    background-color: rgba($white, 0.06);
+  }
+
+  .nav-link.active {
+    color: $white;
+    font-weight: 600;
+    background-color: rgba($brand-500, 0.16);
+    box-shadow: inset 0 0 0 1px rgba($brand-400, 0.35);
+  }
+}
+
+// ─── Botones ────────────────────────────────────────────────────────────
+.btn {
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  transition:
+    transform 0.05s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    color 0.15s ease;
+  border-radius: $border-radius;
+}
+
+.btn:active { transform: translateY(1px); }
+
+.btn-primary {
+  background: linear-gradient(180deg, $brand-500 0%, $brand-600 100%);
+  border-color: $brand-600;
+  color: $white;
+  box-shadow: 0 1px 0 rgba($white, 0.18) inset, 0 6px 16px rgba($brand-500, 0.28);
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  background: linear-gradient(180deg, $brand-600 0%, $brand-700 100%);
+  border-color: $brand-700;
+  color: $white;
+  box-shadow: 0 1px 0 rgba($white, 0.18) inset, 0 10px 22px rgba($brand-500, 0.35);
+}
+
+.btn-primary:disabled,
+.btn-primary.disabled {
+  background: $brand-300;
+  border-color: $brand-300;
+  box-shadow: none;
+}
+
+.btn-dark {
+  background: $ink-900;
+  border-color: $ink-900;
+}
+.btn-dark:hover,
+.btn-dark:focus-visible {
+  background: $ink-800;
+  border-color: $ink-800;
+}
+
+.btn-outline-primary {
+  color: $brand-600;
+  border-color: $ink-150;
+  background: $white;
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus-visible {
+  color: $white;
+  background: $brand-600;
+  border-color: $brand-600;
+}
+
+.btn-outline-secondary {
+  color: $ink-700;
+  border-color: $ink-150;
+  background: $white;
+}
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus-visible {
+  color: $ink-950;
+  background: $ink-50;
+  border-color: $ink-200;
+}
+
+.btn-secondary {
+  background: $ink-700;
+  border-color: $ink-700;
+  color: $white;
+}
+.btn-secondary:hover,
+.btn-secondary:focus-visible {
+  background: $ink-800;
+  border-color: $ink-800;
+}
+
+.btn-link {
+  color: $brand-600;
+  text-decoration: none;
+}
+.btn-link:hover { color: $brand-700; }
+
+// ─── Tarjetas ───────────────────────────────────────────────────────────
+.card {
+  border: 1px solid $ink-150;
+  background: $white;
+  box-shadow: var(--s365-shadow-sm);
+  transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+}
+
+.card.shadow-sm { box-shadow: var(--s365-shadow-sm) !important; }
+.card.shadow    { box-shadow: var(--s365-shadow-md) !important; }
+.card.shadow-lg { box-shadow: var(--s365-shadow-lg) !important; }
+
+.card-header {
+  background: $white;
+  border-bottom: 1px solid $ink-150;
+  font-weight: 600;
+}
+
+// ─── Formularios ────────────────────────────────────────────────────────
+.form-label {
+  font-weight: 500;
+  color: $ink-700;
+  font-size: 0.875rem;
+}
+
+.form-control,
+.form-select {
+  background: $white;
+  border: 1px solid $ink-150;
+  color: $ink-900;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.form-control::placeholder { color: $ink-300; }
+
+.form-control:focus,
+.form-select:focus {
+  border-color: $brand-400;
+  box-shadow: 0 0 0 4px rgba($brand-500, 0.14);
+  background: $white;
+}
+
+.form-control.is-invalid,
+.was-validated .form-control:invalid {
+  border-color: $danger;
+}
+
+.input-group-text {
+  background: $ink-50;
+  border-color: $ink-150;
+  color: $ink-500;
+}
+
+// ─── Badges & tags ──────────────────────────────────────────────────────
+.badge {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.35em 0.6em;
+  border-radius: 999px;
+}
+
+.badge.bg-primary {
+  background: $brand-100 !important;
+  color: $brand-700 !important;
+  box-shadow: inset 0 0 0 1px rgba($brand-500, 0.18);
+}
+
+.badge.bg-dark {
+  background: $ink-900 !important;
+}
+
+.badge.bg-secondary {
+  background: $ink-100 !important;
+  color: $ink-700 !important;
+}
+
+.badge.bg-success {
+  background: rgba($success, 0.12) !important;
+  color: color.adjust($success, $lightness: -8%) !important;
+  box-shadow: inset 0 0 0 1px rgba($success, 0.25);
+}
+
+.badge.bg-danger {
+  background: rgba($danger, 0.12) !important;
+  color: color.adjust($danger, $lightness: -6%) !important;
+  box-shadow: inset 0 0 0 1px rgba($danger, 0.25);
+}
+
+.badge.bg-warning {
+  background: rgba($warning, 0.16) !important;
+  color: color.adjust($warning, $lightness: -14%) !important;
+  box-shadow: inset 0 0 0 1px rgba($warning, 0.28);
+}
+
+// ─── Alerts ─────────────────────────────────────────────────────────────
+.alert {
+  border: 1px solid transparent;
+  border-radius: $border-radius;
+}
+
+.alert-primary {
+  background: $brand-100;
+  border-color: rgba($brand-500, 0.2);
+  color: $brand-700;
+}
+
+.alert-danger {
+  background: rgba($danger, 0.08);
+  border-color: rgba($danger, 0.25);
+  color: color.adjust($danger, $lightness: -10%);
+}
+
+.alert-warning {
+  background: rgba($warning, 0.12);
+  border-color: rgba($warning, 0.3);
+  color: color.adjust($warning, $lightness: -18%);
+}
+
+.alert-success {
+  background: rgba($success, 0.10);
+  border-color: rgba($success, 0.28);
+  color: color.adjust($success, $lightness: -10%);
+}
+
+// ─── Tablas ─────────────────────────────────────────────────────────────
+.table {
+  --bs-table-bg: transparent;
+  color: $ink-900;
+}
+
+.table > :not(caption) > * > * {
+  padding: 0.85rem 1rem;
+  border-bottom-color: $ink-150;
+}
+
+.table thead th {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $ink-400;
+  font-weight: 600;
+  background: $ink-50;
+  border-bottom: 1px solid $ink-150;
+}
+
+.table-hover > tbody > tr:hover > * {
+  background-color: $ink-25;
+}
+
+// ─── Dropdowns ──────────────────────────────────────────────────────────
+.dropdown-menu {
+  border: 1px solid $ink-150;
+  box-shadow: var(--s365-shadow-md);
+  padding: 0.35rem;
+  border-radius: $border-radius;
+}
+
+.dropdown-item {
+  border-radius: $border-radius-sm;
+  padding: 0.5rem 0.75rem;
+  color: $ink-800;
+  font-weight: 500;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background: $ink-50;
+  color: $ink-950;
+}
+
+.dropdown-item.text-danger:hover,
+.dropdown-item.text-danger:focus {
+  background: rgba($danger, 0.08);
+  color: $danger !important;
+}
+
+// ─── Listas y paginación ────────────────────────────────────────────────
+.list-group-item { border-color: $ink-150; }
+
+.page-link {
+  color: $ink-700;
+  border-color: $ink-150;
+}
+.page-link:hover { background: $ink-50; color: $ink-950; }
+.page-item.active .page-link {
+  background: $ink-900;
+  border-color: $ink-900;
+  color: $white;
+}
+
+// ─── Modales ────────────────────────────────────────────────────────────
+.modal-content {
+  border: 1px solid $ink-150;
+  border-radius: $border-radius-lg;
+  box-shadow: var(--s365-shadow-lg);
+}
+.modal-header,
+.modal-footer { border-color: $ink-150; }
+
+// ─── Foco accesible global ──────────────────────────────────────────────
+:focus-visible {
+  outline: none;
+}
+
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.dropdown-item:focus-visible,
+.nav-link:focus-visible,
+a:focus-visible {
+  box-shadow: 0 0 0 4px rgba($brand-500, 0.30);
+}
+
+// ─── Utilidades de marca ────────────────────────────────────────────────
+.bg-brand-soft { background: $brand-100; }
+.text-brand    { color: $brand-600 !important; }
+
+.divider-soft {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, $ink-150, transparent);
+  border: 0;
 }

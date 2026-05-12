@@ -3,8 +3,15 @@
   min-height: 100vh;
 }
 
+// ─── Navbar superior (desktop) ───────────────────────────────────────
+.navbar {
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+
 .navbar-brand {
   letter-spacing: 0.02em;
+  font-size: 1.25rem;
 }
 
 .nav-link.active {
@@ -13,6 +20,21 @@
 
 .dropdown-toggle::after {
   vertical-align: middle;
+  margin-left: 0.4rem;
+  border-top-color: rgba(255, 255, 255, 0.6);
+}
+
+.navbar .dropdown-toggle {
+  color: rgba(255, 255, 255, 0.85);
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.4rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.navbar .dropdown-toggle:hover,
+.navbar .dropdown-toggle:focus {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #fff;
 }
 
 .skip-link {
@@ -21,16 +43,177 @@
   left: 0;
   z-index: 10000;
   padding: 0.5rem 1rem;
-  background: #000;
+  background: #05070a;
   color: #fff;
   text-decoration: none;
+  border-bottom-right-radius: 0.5rem;
 }
 
 .skip-link:focus {
-  outline: 3px solid #ffd54f;
+  outline: 3px solid #2f6bff;
   outline-offset: 2px;
+}
+
+main {
+  padding-top: 1.75rem !important;
+  padding-bottom: 2.5rem !important;
 }
 
 main:focus {
   outline: none;
+}
+
+// ─── Header superior compacto (móvil) ────────────────────────────────
+.mobile-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  height: 56px;
+  padding: 0 1rem;
+  background: linear-gradient(180deg, #05070a 0%, #0b0d10 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.mobile-topbar-brand {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-decoration: none;
+  position: relative;
+  padding-left: 0.65rem;
+}
+
+.mobile-topbar-brand::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 1.05rem;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #5c8bff, #1e54e6);
+  box-shadow: 0 0 12px rgba(47, 107, 255, 0.6);
+}
+
+.mobile-topbar-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.78);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.mobile-topbar-action:hover,
+.mobile-topbar-action:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  outline: none;
+}
+
+// ─── Bottom nav (móvil, estilo Strava) ───────────────────────────────
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1040;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 0.25rem;
+  height: 64px;
+  padding: 0.35rem max(0.5rem, env(safe-area-inset-left)) calc(0.35rem + env(safe-area-inset-bottom))
+    max(0.5rem, env(safe-area-inset-right));
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(160%) blur(14px);
+  -webkit-backdrop-filter: saturate(160%) blur(14px);
+  border-top: 1px solid #dde1e8;
+  box-shadow: 0 -6px 22px rgba(11, 13, 16, 0.06);
+}
+
+.bottom-nav-item {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.18rem;
+  padding: 0.25rem 0.25rem;
+  min-width: 0;
+  color: #5a6371; // ink-400
+  text-decoration: none;
+  border-radius: 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  position: relative;
+  transition: color 0.15s ease, background-color 0.15s ease, transform 0.05s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-item:hover {
+  color: #14171c;
+}
+
+.bottom-nav-item:active {
+  transform: scale(0.96);
+}
+
+.bottom-nav-icon {
+  width: 26px;
+  height: 26px;
+  display: block;
+  transition: transform 0.18s ease;
+}
+
+.bottom-nav-label {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.bottom-nav-item.active {
+  color: #0b0d10;
+}
+
+.bottom-nav-item.active .bottom-nav-icon {
+  color: #2f6bff;
+  transform: translateY(-1px);
+}
+
+.bottom-nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 28%;
+  right: 28%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(90deg, #5c8bff, #2f6bff);
+  box-shadow: 0 0 10px rgba(47, 107, 255, 0.55);
+}
+
+.bottom-nav-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(47, 107, 255, 0.28);
+}
+
+// Espacio para que el contenido no quede oculto bajo la bottom-nav
+@media (max-width: 991.98px) {
+  main.has-bottom-nav {
+    padding-top: 1.25rem !important;
+    padding-bottom: calc(64px + env(safe-area-inset-bottom) + 1.25rem) !important;
+  }
 }

@@ -1,13 +1,10 @@
 <a class="visually-hidden-focusable skip-link" href="#main-content">Saltar al contenido principal</a>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom shadow-sm" aria-label="Navegación principal">
+<!-- ─── Navbar superior (solo desktop ≥ lg) ─────────────────────────── -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top d-none d-lg-flex"
+  aria-label="Navegación principal">
   <div class="container-fluid">
     <a class="navbar-brand fw-semibold" routerLink="/feed">Stride365</a>
-
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
-      aria-controls="mainNav" aria-expanded="false" aria-label="Mostrar menú">
-      <span class="navbar-toggler-icon"></span>
-    </button>
 
     <div class="collapse navbar-collapse" id="mainNav">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -62,6 +59,74 @@
   </div>
 </nav>
 
-<main id="main-content" class="container-fluid py-4" tabindex="-1">
+<!-- ─── Header superior compacto (solo móvil < lg) ──────────────────── -->
+<header class="mobile-topbar d-flex d-lg-none align-items-center justify-content-between"
+  aria-label="Cabecera móvil">
+  <a class="mobile-topbar-brand" routerLink="/feed">Stride365</a>
+
+  <button type="button" class="mobile-topbar-action" (click)="logout()" aria-label="Cerrar sesión">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  </button>
+</header>
+
+<main id="main-content" class="container-fluid py-4 has-bottom-nav" tabindex="-1">
   <router-outlet />
 </main>
+
+<!-- ─── Bottom nav móvil estilo Strava ──────────────────────────────── -->
+<nav class="bottom-nav d-lg-none" aria-label="Navegación inferior">
+  <a class="bottom-nav-item" routerLink="/feed" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">
+    <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 11.5 12 4l9 7.5" />
+      <path d="M5 10v10h14V10" />
+      <path d="M10 20v-6h4v6" />
+    </svg>
+    <span class="bottom-nav-label">Feed</span>
+  </a>
+
+  <a class="bottom-nav-item" routerLink="/clubes" routerLinkActive="active">
+    <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+      <circle cx="10" cy="8" r="3.5" />
+      <path d="M21 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M17 4.13a4 4 0 0 1 0 7.75" />
+    </svg>
+    <span class="bottom-nav-label">Clubes</span>
+  </a>
+
+  <a class="bottom-nav-item" routerLink="/memberships" routerLinkActive="active">
+    <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="2.5" y="5.5" width="19" height="13" rx="2.5" />
+      <line x1="2.5" y1="10" x2="21.5" y2="10" />
+      <line x1="6" y1="15" x2="10" y2="15" />
+    </svg>
+    <span class="bottom-nav-label">Suscripciones</span>
+  </a>
+
+  @if (auth.isSuperAdmin()) {
+  <a class="bottom-nav-item" routerLink="/super-admin" routerLinkActive="active">
+    <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5l-8-3z" />
+    </svg>
+    <span class="bottom-nav-label">Admin</span>
+  </a>
+  }
+
+  <a class="bottom-nav-item" routerLink="/perfil" routerLinkActive="active">
+    <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="8.5" r="3.8" />
+      <path d="M4.5 20c1.2-3.6 4.2-5.7 7.5-5.7s6.3 2.1 7.5 5.7" />
+    </svg>
+    <span class="bottom-nav-label">Perfil</span>
+  </a>
+</nav>
