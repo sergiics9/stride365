@@ -55,9 +55,18 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     /*
-    | URL pública del frontend (SPA) para enlaces en emails. Por defecto coincide con APP_URL.
+    | URL pública del frontend (SPA) para enlaces en emails (p. ej. restablecer contraseña).
+    |
+    | - Si defines FRONTEND_URL en .env, se usa (vacío = no definido → entra el fallback).
+    | - En local (APP_ENV=local) sin FRONTEND_URL, por defecto Angular en http://localhost:4200.
+    | - En otros entornos sin FRONTEND_URL, se usa APP_URL.
     */
-    'frontend_url' => rtrim((string) env('FRONTEND_URL', env('APP_URL', 'http://localhost')), '/'),
+    'frontend_url' => rtrim(
+        (string) (env('FRONTEND_URL') ?: (env('APP_ENV', 'production') === 'local'
+            ? 'http://localhost:4200'
+            : env('APP_URL', 'http://localhost'))),
+        '/'
+    ),
 
     /*
     |--------------------------------------------------------------------------
