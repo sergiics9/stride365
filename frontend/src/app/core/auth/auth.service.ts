@@ -5,10 +5,13 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   AuthResponse,
+  ForgotPasswordRequest,
   LoginRequest,
   MeResponse,
   Membership,
+  MessageResponse,
   RegisterRequest,
+  ResetPasswordRequest,
   RoleName,
   UpdateProfilePayload,
   User,
@@ -100,6 +103,24 @@ export class AuthService {
     const role = kind === 'club' ? 'admin_club' : 'socio';
     return (
       this._memberships().find((m) => m.role === role && m.club_id === clubId) ?? null
+    );
+  }
+
+  async requestPasswordReset(payload: ForgotPasswordRequest): Promise<MessageResponse> {
+    return firstValueFrom(
+      this.http.post<MessageResponse>(
+        `${environment.apiUrl}/auth/forgot-password`,
+        payload,
+      ),
+    );
+  }
+
+  async resetPassword(payload: ResetPasswordRequest): Promise<MessageResponse> {
+    return firstValueFrom(
+      this.http.post<MessageResponse>(
+        `${environment.apiUrl}/auth/reset-password`,
+        payload,
+      ),
     );
   }
 

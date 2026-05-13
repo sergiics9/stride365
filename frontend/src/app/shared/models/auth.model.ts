@@ -37,3 +37,18 @@ export interface MeResponse {
   roles: RoleName[];
   memberships: Membership[];
 }
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
+
+export interface MessageResponse {
+  message: string;
+}

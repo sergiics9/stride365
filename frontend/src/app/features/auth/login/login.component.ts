@@ -45,6 +45,8 @@ export class LoginComponent {
         return 'Tu sesión ha expirado por inactividad. Vuelve a iniciar sesión.';
       case 'session-expired':
         return 'Tu sesión ha caducado. Vuelve a iniciar sesión.';
+      case 'password-reset':
+        return 'Tu contraseña se ha actualizado. Inicia sesión con la nueva.';
       default:
         return null;
     }

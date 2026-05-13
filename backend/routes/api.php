@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\ActividadController;
+use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\RegisterController;
+use App\Http\Controllers\Api\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\Auth\UpdateUserProfileController;
 use App\Http\Controllers\Api\Auth\UserController;
 use App\Http\Controllers\Api\ClubApplicationController;
@@ -20,6 +22,11 @@ use Illuminate\Support\Facades\Route;
 // Públicas
 Route::post('auth/login', LoginController::class)->name('api.auth.login');
 Route::post('auth/register', RegisterController::class)->name('api.auth.register');
+
+Route::middleware('throttle:6,1')->group(function () {
+    Route::post('auth/forgot-password', ForgotPasswordController::class)->name('api.auth.forgot-password');
+    Route::post('auth/reset-password', ResetPasswordController::class)->name('api.auth.reset-password');
+});
 
 Route::post('webhook/stripe', [StripeWebhookController::class, 'handleWebhook'])
     ->name('cashier.webhook');

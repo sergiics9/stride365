@@ -58,6 +58,9 @@
         @if (passwordError()) {
         <div class="invalid-feedback d-block">{{ passwordError() }}</div>
         }
+        <p class="small mt-2 mb-0 text-end">
+          <a routerLink="/auth/forgot-password" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
+        </p>
       </div>
 
       <button type="submit" class="btn btn-primary w-100" [disabled]="submitting() || form.invalid">
