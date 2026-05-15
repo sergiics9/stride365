@@ -430,6 +430,189 @@ hr { border-color: $ink-150; opacity: 1; }
 .modal-header,
 .modal-footer { border-color: $ink-150; }
 
+// ─── Dark mode ──────────────────────────────────────────────────────────
+// Bootstrap 5.3 maneja sus componentes; aquí solo sobreescribimos los custom.
+[data-bs-theme="dark"] {
+  // Tokens
+  --s365-ink-950: #f0f4f8;
+  --s365-ink-900: #dde1e8;
+  --s365-ink-700: #c2c8d2;
+  --s365-ink-500: #8a93a1;
+  --s365-ink-300: #5a6371;
+  --s365-ink-150: #2d3148;
+  --s365-ink-50:  #1a1d27;
+  --s365-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25), 0 1px 1px rgba(0, 0, 0, 0.18);
+  --s365-shadow-md: 0 6px 18px rgba(0, 0, 0, 0.30), 0 2px 4px rgba(0, 0, 0, 0.20);
+  --s365-shadow-lg: 0 18px 40px rgba(0, 0, 0, 0.40), 0 4px 12px rgba(0, 0, 0, 0.25);
+
+  // Body
+  body {
+    background: #0f1117;
+    color: #dde1e8;
+  }
+
+  // Headlines
+  h1, h2, h3, h4, h5, h6,
+  .h1, .h2, .h3, .h4, .h5, .h6 {
+    color: #f0f4f8;
+  }
+
+  .text-muted { color: #8a93a1 !important; }
+  hr { border-color: #2d3148; }
+
+  // Tarjetas
+  .card {
+    background: #1a1d27;
+    border-color: #2d3148;
+  }
+  .card-header {
+    background: #1a1d27;
+    border-bottom-color: #2d3148;
+  }
+
+  // Formularios
+  .form-label { color: #c2c8d2; }
+
+  .form-control,
+  .form-select {
+    background: #13151f;
+    border-color: #2d3148;
+    color: #dde1e8;
+  }
+
+  .form-control::placeholder { color: #5a6371; }
+
+  .form-control:focus,
+  .form-select:focus {
+    background: #13151f;
+    border-color: #5c8bff;
+    box-shadow: 0 0 0 4px rgba(47, 107, 255, 0.20);
+  }
+
+  .input-group-text {
+    background: #13151f;
+    border-color: #2d3148;
+    color: #8a93a1;
+  }
+
+  // Botones
+  .btn-outline-primary {
+    background: transparent;
+    border-color: #5c8bff;
+    color: #5c8bff;
+
+    &:hover, &:focus-visible {
+      background: #2f6bff;
+      border-color: #2f6bff;
+      color: #fff;
+    }
+  }
+
+  .btn-outline-secondary {
+    background: transparent;
+    border-color: #3d4651;
+    color: #c2c8d2;
+
+    &:hover, &:focus-visible {
+      background: #242742;
+      border-color: #5a6371;
+      color: #dde1e8;
+    }
+  }
+
+  // Badges
+  .badge.bg-secondary {
+    background: #242742 !important;
+    color: #c2c8d2 !important;
+  }
+
+  .badge.bg-light {
+    background: #242742 !important;
+    color: #c2c8d2 !important;
+  }
+
+  // Alerts
+  .alert-primary {
+    background: rgba(47, 107, 255, 0.15);
+    border-color: rgba(92, 139, 255, 0.25);
+    color: #8aaaff;
+  }
+
+  // Tablas
+  .table {
+    color: #dde1e8;
+  }
+
+  .table > :not(caption) > * > * {
+    border-bottom-color: #2d3148;
+  }
+
+  .table thead th {
+    background: #13151f;
+    color: #8a93a1;
+    border-bottom-color: #2d3148;
+  }
+
+  .table-hover > tbody > tr:hover > * {
+    background-color: #1f2235;
+  }
+
+  // Dropdowns
+  .dropdown-menu {
+    background: #1f2235;
+    border-color: #2d3148;
+  }
+
+  .dropdown-item {
+    color: #c2c8d2;
+
+    &:hover, &:focus { background: #242742; color: #f0f4f8; }
+
+    &.text-danger:hover,
+    &.text-danger:focus {
+      background: rgba(224, 54, 79, 0.15);
+    }
+  }
+
+  .dropdown-divider { border-color: #2d3148; }
+
+  // Listas y paginación
+  .list-group-item {
+    background: #1a1d27;
+    border-color: #2d3148;
+    color: #dde1e8;
+  }
+
+  .page-link {
+    background: #1a1d27;
+    border-color: #2d3148;
+    color: #c2c8d2;
+
+    &:hover { background: #1f2235; color: #f0f4f8; }
+  }
+
+  .page-item.active .page-link {
+    background: #2f6bff;
+    border-color: #2f6bff;
+  }
+
+  // Modales
+  .modal-content {
+    background: #1a1d27;
+    border-color: #2d3148;
+  }
+
+  .modal-header,
+  .modal-footer { border-color: #2d3148; }
+
+  // Text body / bg helpers
+  .text-body { color: #dde1e8 !important; }
+  .bg-light { background: #1a1d27 !important; }
+  .text-dark { color: #dde1e8 !important; }
+  .bg-white { background: #1a1d27 !important; }
+  .border { border-color: #2d3148 !important; }
+}
+
 // ─── Foco accesible global ──────────────────────────────────────────────
 :focus-visible {
   outline: none;

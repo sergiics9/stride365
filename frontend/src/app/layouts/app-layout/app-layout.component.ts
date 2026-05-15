@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { ThemeService } from '../../core/theme/theme.service';
 
 @Component({
   selector: 'app-app-layout',
@@ -12,6 +13,7 @@ import { AuthService } from '../../core/auth/auth.service';
 })
 export class AppLayoutComponent {
   protected readonly auth = inject(AuthService);
+  protected readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
 
   protected readonly primaryRoleLabel = computed(() => {

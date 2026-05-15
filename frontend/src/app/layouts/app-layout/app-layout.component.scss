@@ -217,3 +217,46 @@ main:focus {
     padding-bottom: calc(64px + env(safe-area-inset-bottom) + 1.25rem) !important;
   }
 }
+
+// ─── Dark mode overrides ──────────────────────────────────────────────
+:host-context([data-bs-theme="dark"]) {
+  .bottom-nav {
+    background: rgba(20, 23, 35, 0.94);
+    border-top-color: #2d3148;
+    box-shadow: 0 -6px 22px rgba(0, 0, 0, 0.25);
+  }
+
+  .bottom-nav-item {
+    color: #8a93a1;
+
+    &:hover { color: #dde1e8; }
+    &.active { color: #dde1e8; }
+  }
+
+  .mobile-topbar-action { color: rgba(255, 255, 255, 0.72); }
+}
+
+// ─── Botón de toggle del tema ────────────────────────────────────────
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  &:hover, &:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+
+  svg { display: block; }
+}
