@@ -11,6 +11,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs/operators';
 
+import Swal from 'sweetalert2';
+
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ToastService } from '../../../core/toast/toast.service';
@@ -171,9 +173,16 @@ export class MembershipsOverviewComponent {
 
   protected async cancelMembership(m: Membership): Promise<void> {
     const noun = m.role === 'admin_club' ? 'tu club' : `tu suscripción de socio (${m.club?.nombre ?? 'club'})`;
-    if (!confirm(`¿Seguro que quieres cancelar ${noun} al final del periodo actual?`)) {
-      return;
-    }
+    const { isConfirmed } = await Swal.fire({
+      title: '¿Cancelar suscripción?',
+      text: `Se cancelará ${noun} al final del periodo actual. Mantendrás el acceso hasta entonces.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      confirmButtonText: 'Sí, cancelar',
+      cancelButtonText: 'Mantener',
+    });
+    if (!isConfirmed) return;
     try {
       const result = await this.service.cancel({ kind: m.kind, club_id: m.club_id });
       this.toast.success(result.message);

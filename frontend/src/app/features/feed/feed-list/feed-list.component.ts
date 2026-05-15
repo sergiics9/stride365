@@ -13,6 +13,8 @@ import { Meta, Title } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { debounceTime, startWith } from 'rxjs';
 
+import Swal from 'sweetalert2';
+
 import { ToastService } from '../../../core/toast/toast.service';
 import { toApiError } from '../../../shared/utils/api-error.util';
 import { RelativeDatePipe } from '../../../shared/pipes/relative-date.pipe';
@@ -94,10 +96,21 @@ export class FeedListComponent {
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
+
+    const { value: titulo, isConfirmed } = await Swal.fire({
+      title: 'Importar GPX',
+      input: 'text',
+      inputLabel: 'Título de la actividad (opcional)',
+      inputPlaceholder: 'Mi salida del domingo…',
+      showCancelButton: true,
+      confirmButtonText: 'Importar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!isConfirmed) return;
+
     this.importingGpx.set(true);
     try {
-      const titulo = prompt('Título de la actividad (opcional):')?.trim();
-      await this.feedService.importGpx(file, titulo || undefined);
+      await this.feedService.importGpx(file, titulo?.trim() || undefined);
       this.toast.success('GPX importado y publicado en el feed.');
       void this.feedService.loadList(this.toFilters(), this.page());
     } catch (err) {

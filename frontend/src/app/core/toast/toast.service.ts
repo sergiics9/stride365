@@ -1,41 +1,43 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable } from '@angular/core';
+import Swal, { SweetAlertIcon } from 'sweetalert2';
 
 export type ToastKind = 'success' | 'error' | 'warning' | 'info';
 
-export interface Toast {
-  id: string;
-  kind: ToastKind;
-  message: string;
-}
+const SwalToast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timerProgressBar: true,
+  didOpen: (el) => {
+    el.onmouseenter = Swal.stopTimer;
+    el.onmouseleave = Swal.resumeTimer;
+  },
+});
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
-  private readonly _toasts = signal<Toast[]>([]);
-  readonly toasts = this._toasts.asReadonly();
-
-  show(message: string, kind: ToastKind = 'info', durationMs = 4500): string {
-    const id = crypto.randomUUID();
-    this._toasts.update((list) => [...list, { id, kind, message }]);
-    if (durationMs > 0) {
-      setTimeout(() => this.dismiss(id), durationMs);
-    }
-    return id;
+  show(message: string, kind: ToastKind = 'info', durationMs = 4500): void {
+    void SwalToast.fire({ icon: kind as SweetAlertIcon, title: message, timer: durationMs });
   }
 
-  success(message: string, durationMs?: number): string {
-    return this.show(message, 'success', durationMs);
-  }
-  error(message: string, durationMs = 7000): string {
-    return this.show(message, 'error', durationMs);
-  }
-  warning(message: string, durationMs?: number): string {
-    return this.show(message, 'warning', durationMs);
-  }
-  info(message: string, durationMs?: number): string {
-    return this.show(message, 'info', durationMs);
+  success(message: string, durationMs = 4500): void {
+    this.show(message, 'success', durationMs);
   }
 
-  dismiss(id: string): void {
-    this._toasts.update((list) => list.filter((t) => t.id !== id));
+  error(message: string, durationMs = 7000): void {
+    this.show(message, 'error', durationMs);
+  }
+
+  warning(message: string, durationMs = 4500): void {
+    this.show(message, 'warning', durationMs);
+  }
+
+  info(message: string, durationMs = 4500): void {
+    this.show(message, 'info', durationMs);
+  }
+
+  /** Mantenido por compatibilidad; Swal gestiona sus propios timers */
+  dismiss(_id?: string): void {
+    Swal.close();
   }
 }

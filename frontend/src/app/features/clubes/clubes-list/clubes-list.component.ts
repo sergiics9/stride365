@@ -4,6 +4,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { debounceTime } from 'rxjs/operators';
 
+import Swal from 'sweetalert2';
+
 import { AuthService } from '../../../core/auth/auth.service';
 import { ToastService } from '../../../core/toast/toast.service';
 import { Club } from '../../../shared/models';
@@ -77,13 +79,16 @@ export class ClubesListComponent {
   }
 
   protected async deleteClub(c: Club): Promise<void> {
-    if (
-      !confirm(
-        `¿Eliminar el club «${c.nombre}»? Se borrarán socios, actividades y datos asociados. Esta acción no se puede deshacer.`,
-      )
-    ) {
-      return;
-    }
+    const { isConfirmed } = await Swal.fire({
+      title: `¿Eliminar «${c.nombre}»?`,
+      text: 'Se borrarán socios, actividades y datos asociados. Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!isConfirmed) return;
     try {
       await this.service.delete(c.id);
       this.toast.success('Club eliminado.');

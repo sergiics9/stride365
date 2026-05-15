@@ -3,6 +3,8 @@ import { ChangeDetectionStrategy, Component, OnDestroy, inject, signal } from '@
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
+import Swal from 'sweetalert2';
+
 import { ToastService } from '../../../core/toast/toast.service';
 import { toApiError } from '../../../shared/utils/api-error.util';
 import { FeedService } from '../feed.service';
@@ -84,6 +86,30 @@ export class FeedRecordLiveComponent implements OnDestroy {
 
   protected async detenerYPublicar(): Promise<void> {
     if (this.recordingId === null) return;
+
+    const { value: formValues, isConfirmed } = await Swal.fire({
+      title: 'Publicar actividad',
+      html: `
+        <div class="mb-3 text-start">
+          <label class="form-label fw-semibold" for="swal-titulo">Título (opcional)</label>
+          <input id="swal-titulo" class="swal2-input" placeholder="Mi salida de hoy…" style="margin:0;width:100%">
+        </div>
+        <div class="mb-1 text-start">
+          <label class="form-label fw-semibold" for="swal-desc">Descripción (opcional)</label>
+          <textarea id="swal-desc" class="swal2-textarea" placeholder="Cómo fue la salida…" style="margin:0;width:100%;height:80px"></textarea>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: '#0d6efd',
+      confirmButtonText: 'Publicar',
+      cancelButtonText: 'Volver a grabar',
+      preConfirm: () => ({
+        titulo: (document.getElementById('swal-titulo') as HTMLInputElement)?.value?.trim(),
+        descripcion: (document.getElementById('swal-desc') as HTMLTextAreaElement)?.value?.trim(),
+      }),
+    });
+    if (!isConfirmed) return;
+
     this.clearGeo();
     if (this.flushTimer !== null) {
       clearInterval(this.flushTimer);
@@ -92,11 +118,9 @@ export class FeedRecordLiveComponent implements OnDestroy {
     await this.flush();
     this.phase.set('saving');
     try {
-      const titulo = prompt('Título de la actividad (opcional):')?.trim();
-      const desc = prompt('Descripción (opcional):')?.trim();
       await this.feed.finishRecording(this.recordingId, {
-        titulo: titulo || undefined,
-        descripcion: desc || undefined,
+        titulo: formValues?.titulo || undefined,
+        descripcion: formValues?.descripcion || undefined,
       });
       this.toast.success('Actividad publicada en el feed.');
       await this.router.navigate(['/feed']);

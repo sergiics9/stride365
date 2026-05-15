@@ -57,4 +57,71 @@ class FeedController extends Controller
             ])
         );
     }
+
+    /**
+     * Actualiza el título y la descripción de una publicación del feed.
+     * Solo el creador o un super_admin puede hacerlo.
+     */
+    public function update(Request $request, PublicacionFeed $publicacion): JsonResponse
+    {
+        abort_if($publicacion->estado !== 'activo', 404);
+        abort_unless(
+            $publicacion->actividad && $publicacion->actividad->club_id === null,
+            404,
+        );
+
+        $user = $request->user();
+        abort_unless(
+            $user->id === $publicacion->user_id || $user->hasRole('super_admin'),
+            403,
+            'No tienes permiso para editar esta publicación.',
+        );
+
+        $validated = $request->validate([
+            'titulo'      => ['required', 'string', 'max:255'],
+            'descripcion' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $publicacion->update(['titulo' => $validated['titulo']]);
+
+        if ($publicacion->actividad) {
+            $publicacion->actividad->update([
+                'titulo'      => $validated['titulo'],
+                'descripcion' => $validated['descripcion'] ?? null,
+            ]);
+        }
+
+        return response()->json(
+            $publicacion->fresh()->load([
+                'user:id,nombre,apellido,email',
+                'actividad:id,club_id,user_id,titulo,descripcion,fecha_inicio,fecha_fin,distancia,desnivel_positivo_m,duracion_segundos,ritmo_segundos_por_km,pulsaciones_media,pulsaciones_max,dificultad,modalidad,track_geojson,modo_creacion',
+                'actividad.club:id,nombre,slug,logo_url',
+                'media',
+            ])
+        );
+    }
+
+    /**
+     * Elimina (soft) una publicación del feed marcándola como 'eliminado'.
+     * Solo el creador o un super_admin puede hacerlo.
+     */
+    public function destroy(Request $request, PublicacionFeed $publicacion): JsonResponse
+    {
+        abort_if($publicacion->estado === 'eliminado', 404);
+        abort_unless(
+            $publicacion->actividad && $publicacion->actividad->club_id === null,
+            404,
+        );
+
+        $user = $request->user();
+        abort_unless(
+            $user->id === $publicacion->user_id || $user->hasRole('super_admin'),
+            403,
+            'No tienes permiso para eliminar esta publicación.',
+        );
+
+        $publicacion->update(['estado' => 'eliminado']);
+
+        return response()->json(['message' => 'Publicación eliminada correctamente.']);
+    }
 }

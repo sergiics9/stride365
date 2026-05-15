@@ -12,6 +12,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router } from '@angular/router';
 import { debounceTime, map } from 'rxjs/operators';
 
+import Swal from 'sweetalert2';
+
 import { ToastService } from '../../../core/toast/toast.service';
 import { Club, MembershipStatus, Socio } from '../../../shared/models';
 import {
@@ -151,11 +153,21 @@ export class SociosListComponent {
   protected async giveLeave(s: Socio): Promise<void> {
     const c = this.club();
     if (!c) return;
-    const motivo = prompt('Motivo de la baja (opcional):');
-    if (motivo === null) return;
-    if (!confirm(`¿Confirmar baja de ${s.user?.nombre ?? s.user?.email}?`)) return;
+    const nombre = s.user?.nombre ?? s.user?.email ?? 'este socio';
+    const { value: motivo, isConfirmed } = await Swal.fire({
+      title: `¿Dar de baja a ${nombre}?`,
+      input: 'textarea',
+      inputLabel: 'Motivo de la baja (opcional)',
+      inputPlaceholder: 'Indica el motivo si lo deseas…',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      confirmButtonText: 'Dar de baja',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!isConfirmed) return;
     try {
-      await this.service.destroy(c.id, s.id, motivo || undefined);
+      await this.service.destroy(c.id, s.id, motivo?.trim() || undefined);
       this.toast.success('Socio dado de baja.');
       await this.service.load(c.id);
     } catch (err) {

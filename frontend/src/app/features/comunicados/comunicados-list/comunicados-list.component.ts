@@ -4,6 +4,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import Swal from 'sweetalert2';
+
 import { AuthService } from '../../../core/auth/auth.service';
 import { ToastService } from '../../../core/toast/toast.service';
 import { Club, Comunicado } from '../../../shared/models';
@@ -86,7 +88,16 @@ export class ComunicadosListComponent {
   protected async remove(com: Comunicado): Promise<void> {
     const c = this.club();
     if (!c) return;
-    if (!confirm('¿Eliminar este comunicado?')) return;
+    const { isConfirmed } = await Swal.fire({
+      title: '¿Eliminar comunicado?',
+      text: `«${com.titulo}» será eliminado permanentemente.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!isConfirmed) return;
     try {
       await this.service.destroy(c.id, com.id);
       this.toast.success('Comunicado eliminado.');

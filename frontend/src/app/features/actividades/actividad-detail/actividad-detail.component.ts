@@ -15,6 +15,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs/operators';
 
+import Swal from 'sweetalert2';
+
 import { stripGeoJsonCoordinatesTo2D } from '../../../shared/utils/geojson-2d.util';
 import { loadLeaflet } from '../../../shared/utils/leaflet-loader.util';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -160,10 +162,20 @@ export class ActividadDetailComponent implements AfterViewInit, OnDestroy {
   protected async cancelarInscripcion(ins: Inscripcion): Promise<void> {
     const a = this.actividad();
     if (!a) return;
-    const motivo = prompt('Motivo de la cancelación (opcional):');
-    if (motivo === null) return;
+    const { value: motivo, isConfirmed } = await Swal.fire({
+      title: '¿Cancelar inscripción?',
+      input: 'textarea',
+      inputLabel: 'Motivo de la cancelación (opcional)',
+      inputPlaceholder: 'Indica el motivo si lo deseas…',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      confirmButtonText: 'Cancelar inscripción',
+      cancelButtonText: 'Volver',
+    });
+    if (!isConfirmed) return;
     try {
-      await this.service.cancelarInscripcion(a.id, ins.id, motivo || undefined);
+      await this.service.cancelarInscripcion(a.id, ins.id, motivo?.trim() || undefined);
       this.inscripciones.update((list) => list.filter((i) => i.id !== ins.id));
       this.toast.success('Inscripción cancelada.');
     } catch (err) {
@@ -175,8 +187,25 @@ export class ActividadDetailComponent implements AfterViewInit, OnDestroy {
     const c = this.club();
     const a = this.actividad();
     if (!c || !a) return;
-    const motivo = prompt('Motivo de la cancelación:');
-    if (!motivo) return;
+    const { value: motivo, isConfirmed } = await Swal.fire({
+      title: '¿Cancelar actividad?',
+      input: 'textarea',
+      inputLabel: 'Motivo de la cancelación',
+      inputPlaceholder: 'Indica el motivo…',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      confirmButtonText: 'Cancelar actividad',
+      cancelButtonText: 'Volver',
+      preConfirm: (value: string) => {
+        if (!value?.trim()) {
+          Swal.showValidationMessage('El motivo es obligatorio');
+          return false;
+        }
+        return value.trim();
+      },
+    });
+    if (!isConfirmed || !motivo) return;
     try {
       await this.service.cancel(c.id, a.id, motivo);
       this.toast.success('Actividad cancelada.');
@@ -190,6 +219,16 @@ export class ActividadDetailComponent implements AfterViewInit, OnDestroy {
     const c = this.club();
     const a = this.actividad();
     if (!c || !a) return;
+    const { isConfirmed } = await Swal.fire({
+      title: '¿Finalizar actividad?',
+      text: 'La actividad quedará marcada como finalizada.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#198754',
+      confirmButtonText: 'Sí, finalizar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!isConfirmed) return;
     try {
       await this.service.finish(c.id, a.id, {});
       this.toast.success('Actividad finalizada.');

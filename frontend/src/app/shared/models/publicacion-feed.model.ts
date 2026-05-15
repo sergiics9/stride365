@@ -26,6 +26,7 @@ export interface PublicacionFeed {
     | 'club_id'
     | 'user_id'
     | 'titulo'
+    | 'descripcion'
     | 'fecha_inicio'
     | 'fecha_fin'
     | 'distancia'

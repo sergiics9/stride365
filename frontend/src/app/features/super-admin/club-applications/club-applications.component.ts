@@ -1,6 +1,8 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 
+import Swal from 'sweetalert2';
+
 import { ToastService } from '../../../core/toast/toast.service';
 import { ClubApplicationStatus } from '../../../shared/models';
 import { toApiError } from '../../../shared/utils/api-error.util';
@@ -36,7 +38,15 @@ export class ClubApplicationsComponent {
   }
 
   protected async approve(clubId: number): Promise<void> {
-    if (!confirm('¿Aprobar este club?')) return;
+    const { isConfirmed } = await Swal.fire({
+      title: '¿Aprobar este club?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#198754',
+      confirmButtonText: 'Sí, aprobar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!isConfirmed) return;
     try {
       await this.service.approve(clubId);
       this.toast.success('Club aprobado.');
@@ -47,8 +57,25 @@ export class ClubApplicationsComponent {
   }
 
   protected async reject(clubId: number): Promise<void> {
-    const reason = prompt('Motivo del rechazo:');
-    if (!reason) return;
+    const { value: reason, isConfirmed } = await Swal.fire({
+      title: 'Rechazar solicitud',
+      input: 'textarea',
+      inputLabel: 'Motivo del rechazo',
+      inputPlaceholder: 'Indica el motivo…',
+      inputAttributes: { 'aria-label': 'Motivo del rechazo' },
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      confirmButtonText: 'Rechazar',
+      cancelButtonText: 'Cancelar',
+      preConfirm: (value: string) => {
+        if (!value?.trim()) {
+          Swal.showValidationMessage('El motivo es obligatorio');
+          return false;
+        }
+        return value.trim();
+      },
+    });
+    if (!isConfirmed || !reason) return;
     try {
       await this.service.reject(clubId, reason);
       this.toast.success('Club rechazado.');

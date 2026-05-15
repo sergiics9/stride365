@@ -51,6 +51,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('{publicacion}', [FeedController::class, 'show'])
             ->whereNumber('publicacion')
             ->name('show');
+        Route::patch('{publicacion}', [FeedController::class, 'update'])
+            ->whereNumber('publicacion')
+            ->name('update');
+        Route::delete('{publicacion}', [FeedController::class, 'destroy'])
+            ->whereNumber('publicacion')
+            ->name('destroy');
     });
 
     Route::prefix('subscription')->name('api.subscription.')->group(function () {

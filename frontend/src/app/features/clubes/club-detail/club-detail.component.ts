@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
+import Swal from 'sweetalert2';
+
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ToastService } from '../../../core/toast/toast.service';
@@ -84,13 +86,16 @@ export class ClubDetailComponent {
   protected async deleteClubAsSuperAdmin(): Promise<void> {
     const c = this.club();
     if (!c) return;
-    if (
-      !confirm(
-        `¿Eliminar el club «${c.nombre}»? Se borrarán socios, actividades y datos asociados. Esta acción no se puede deshacer.`,
-      )
-    ) {
-      return;
-    }
+    const { isConfirmed } = await Swal.fire({
+      title: `¿Eliminar «${c.nombre}»?`,
+      text: 'Se borrarán socios, actividades y datos asociados. Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!isConfirmed) return;
     this.deletingClub.set(true);
     try {
       await this.clubes.delete(c.id);

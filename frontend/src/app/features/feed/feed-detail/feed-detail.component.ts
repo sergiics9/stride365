@@ -12,9 +12,12 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Meta, Title } from '@angular/platform-browser';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import Swal from 'sweetalert2';
 
+import { AuthService } from '../../../core/auth/auth.service';
 import { MediaItem, PublicacionFeed } from '../../../shared/models';
 import { OSM_ATTRIBUTION, OSM_TILE_LAYER_URL } from '../../../shared/map/osm-tiles';
 import {
@@ -23,6 +26,7 @@ import {
 } from '../../../shared/utils/activity-metrics-display.util';
 import { stripGeoJsonCoordinatesTo2D } from '../../../shared/utils/geojson-2d.util';
 import { loadLeaflet } from '../../../shared/utils/leaflet-loader.util';
+import { FeedService } from '../feed.service';
 
 interface MapBundle {
   L: typeof import('leaflet');
@@ -30,7 +34,7 @@ interface MapBundle {
 
 @Component({
   selector: 'app-feed-detail',
-  imports: [DatePipe, RouterLink, TitleCasePipe],
+  imports: [DatePipe, FormsModule, RouterLink, TitleCasePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './feed-detail.component.html',
   styleUrl: './feed-detail.component.scss',
@@ -39,11 +43,20 @@ export class FeedDetailComponent implements AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly title = inject(Title);
   private readonly meta = inject(Meta);
+  private readonly auth = inject(AuthService);
+  private readonly feedService = inject(FeedService);
+  private readonly router = inject(Router);
 
+  /** Input del resolver (inmutable); se sincroniza con _pub para permitir actualizaciones locales */
   readonly publicacion = input<PublicacionFeed | null>(null);
 
+  private readonly _pub = signal<PublicacionFeed | null>(null);
+
+  /** Publicación local que puede actualizarse tras edición sin recargar el resolver */
+  protected readonly pub = this._pub.asReadonly();
+
   private readonly seoEffect = effect(() => {
-    const p = this.publicacion();
+    const p = this._pub();
     if (!p) return;
     const titulo = p.titulo ?? 'Actividad';
     this.title.setTitle(`${titulo} — Feed`);
@@ -63,18 +76,26 @@ export class FeedDetailComponent implements AfterViewInit {
   protected formatActividadPace = formatPaceMinPerKm;
 
   protected readonly imagenes = computed<MediaItem[]>(() =>
-    (this.publicacion()?.media ?? []).filter((m) => m.mime_type?.startsWith('image/')),
+    (this._pub()?.media ?? []).filter((m) => m.mime_type?.startsWith('image/')),
   );
 
+  /** El usuario actual es el creador de la publicación o super_admin */
+  protected readonly isOwner = computed(() => {
+    const p = this._pub();
+    const user = this.auth.user();
+    if (!p || !user) return false;
+    return p.user_id === user.id || this.auth.isSuperAdmin();
+  });
+
   protected readonly trackGeoJson = computed(() => {
-    const g = this.publicacion()?.actividad?.track_geojson;
+    const g = this._pub()?.actividad?.track_geojson;
     if (!g || typeof g !== 'object') return null;
     const coords = (g as { coordinates?: unknown }).coordinates;
     return Array.isArray(coords) && coords.length >= 2 ? g : null;
   });
 
   protected readonly gpx = computed<MediaItem | null>(() => {
-    const media = this.publicacion()?.media ?? [];
+    const media = this._pub()?.media ?? [];
     return (
       media.find(
         (m) => m.mime_type === 'application/gpx+xml' || m.file_name?.toLowerCase().endsWith('.gpx'),
@@ -86,10 +107,24 @@ export class FeedDetailComponent implements AfterViewInit {
     () => this.trackGeoJson() !== null || this.gpx()?.original_url,
   );
 
+  // --- Estado modal edición ---
+  protected readonly showEditModal = signal(false);
+  protected editTitulo = '';
+  protected editDescripcion = '';
+  protected readonly editLoading = signal(false);
+
   private mapInstance: import('leaflet').Map | null = null;
   private mapBundle: MapBundle | null = null;
 
   constructor() {
+    // Sincroniza el input con el signal local
+    effect(() => {
+      const incoming = this.publicacion();
+      if (incoming !== null) {
+        this._pub.set(incoming);
+      }
+    });
+
     effect(() => {
       const container = this.mapContainer()?.nativeElement;
       if (!container || !this.hasMap()) return;
@@ -114,6 +149,77 @@ export class FeedDetailComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     /* effect handles initialization */
+  }
+
+  /** Abre el modal de edición con los valores actuales */
+  protected openEditModal(): void {
+    const p = this._pub();
+    this.editTitulo = p?.titulo ?? '';
+    this.editDescripcion = p?.actividad?.descripcion ?? '';
+    this.showEditModal.set(true);
+  }
+
+  protected closeEditModal(): void {
+    this.showEditModal.set(false);
+  }
+
+  protected async submitEdit(): Promise<void> {
+    const p = this._pub();
+    if (!p || !this.editTitulo.trim()) return;
+
+    this.editLoading.set(true);
+    try {
+      const updated = await this.feedService.updatePublicacion(p.id, {
+        titulo: this.editTitulo.trim(),
+        descripcion: this.editDescripcion.trim() || null,
+      });
+      this._pub.set(updated);
+      this.showEditModal.set(false);
+      void Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Actividad actualizada.',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
+    } catch {
+      void Swal.fire({
+        icon: 'error',
+        title: 'Error al guardar',
+        text: 'No se pudo guardar los cambios. Inténtalo de nuevo.',
+      });
+    } finally {
+      this.editLoading.set(false);
+    }
+  }
+
+  protected async confirmDelete(): Promise<void> {
+    const p = this._pub();
+    if (!p) return;
+
+    const { isConfirmed } = await Swal.fire({
+      title: '¿Eliminar publicación?',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!isConfirmed) return;
+
+    try {
+      await this.feedService.deletePublicacion(p.id);
+      void this.router.navigate(['/feed']);
+    } catch {
+      void Swal.fire({
+        icon: 'error',
+        title: 'Error al eliminar',
+        text: 'No se pudo eliminar la publicación. Inténtalo de nuevo.',
+      });
+    }
   }
 
   private async renderGeoJson(container: HTMLDivElement, geojson: object): Promise<void> {

@@ -109,4 +109,19 @@ export class FeedService {
       ),
     );
   }
+
+  async updatePublicacion(
+    id: number,
+    body: { titulo: string; descripcion?: string | null },
+  ): Promise<PublicacionFeed> {
+    return firstValueFrom(
+      this.http.patch<PublicacionFeed>(`${environment.apiUrl}/feed/${id}`, body),
+    );
+  }
+
+  async deletePublicacion(id: number): Promise<{ message: string }> {
+    return firstValueFrom(
+      this.http.delete<{ message: string }>(`${environment.apiUrl}/feed/${id}`),
+    );
+  }
 }
