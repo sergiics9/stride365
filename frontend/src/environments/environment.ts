@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://thumping-denatured-supremacy.ngrok-free.dev/api',
+  apiUrl: 'https://stride365.com/api',
   inactivityTimeoutMs: 30 * 60 * 1000,
   pricing: {
     club: {
