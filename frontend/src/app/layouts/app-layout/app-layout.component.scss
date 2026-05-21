@@ -12,6 +12,13 @@
 .navbar-brand {
   letter-spacing: 0.02em;
   font-size: 1.25rem;
+  padding: 0;
+}
+
+.navbar-logo {
+  height: 36px;
+  width: auto;
+  display: block;
 }
 
 .nav-link.active {
@@ -83,21 +90,16 @@ main:focus {
   color: #fff;
   text-decoration: none;
   position: relative;
-  padding-left: 0.65rem;
+  padding-left: 0;
+  display: flex;
+  align-items: center;
+
+  .navbar-logo {
+    height: 32px;
+    width: auto;
+  }
 }
 
-.mobile-topbar-brand::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 1.05rem;
-  border-radius: 2px;
-  background: linear-gradient(180deg, #5c8bff, #1e54e6);
-  box-shadow: 0 0 12px rgba(47, 107, 255, 0.6);
-}
 
 .mobile-topbar-action {
   display: inline-flex;

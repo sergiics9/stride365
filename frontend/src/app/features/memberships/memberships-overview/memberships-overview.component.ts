@@ -103,6 +103,7 @@ export class MembershipsOverviewComponent {
       }
     });
 
+    void this.service.loadMemberships(false);
     void this.service.loadInvoices();
   }
 

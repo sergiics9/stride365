@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://stride365.com/api',
+  apiUrl: 'http://127.0.0.1:8000/api',
   inactivityTimeoutMs: 30 * 60 * 1000,
   pricing: {
     club: {

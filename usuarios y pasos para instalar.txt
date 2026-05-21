@@ -13,6 +13,7 @@ composer install
 copy .env
 php artisan key:generate
 php artisan migrate:fresh --seed
+rm backend/public/storage
 php artisan storage:link
 php artisan serve
 
