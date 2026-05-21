@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Support\BrandLogo;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -26,7 +27,7 @@ class FacturaGeneradaNotification extends Notification
         $filename = 'factura-' . ($number ?? 'suscripcion') . '.pdf';
 
         $pdf = $this->invoice->pdf([
-            'vendor' => config('app.name'),
+            'vendor' => BrandLogo::name(),
             'product' => 'Suscripción Stride365',
         ]);
 

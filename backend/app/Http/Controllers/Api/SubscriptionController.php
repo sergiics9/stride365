@@ -253,7 +253,7 @@ class SubscriptionController extends Controller
     public function downloadInvoice(Request $request, string $invoice)
     {
         return $request->user()->downloadInvoice($invoice, [
-            'vendor' => config('app.name'),
+            'vendor' => \App\Support\BrandLogo::name(),
             'product' => 'Suscripción Stride365',
         ]);
     }
