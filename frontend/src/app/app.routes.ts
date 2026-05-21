@@ -6,6 +6,12 @@ import { clubAccessGuard } from './core/guards/subscription.guard';
 
 export const routes: Routes = [
   {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./features/landing/landing.component').then((m) => m.LandingComponent),
+  },
+  {
     path: 'auth',
     canMatch: [guestGuard],
     loadComponent: () =>
@@ -20,7 +26,6 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./layouts/app-layout/app-layout.component').then((m) => m.AppLayoutComponent),
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'feed' },
       {
         path: 'feed',
         loadChildren: () => import('./features/feed/feed.routes').then((m) => m.FEED_ROUTES),

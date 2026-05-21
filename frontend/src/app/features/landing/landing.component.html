@@ -1,0 +1,363 @@
+<div class="landing">
+  <!-- ─── Navbar superior ───────────────────────────────────────────── -->
+  <nav class="landing-nav" aria-label="Navegación principal">
+    <div class="container d-flex align-items-center justify-content-between py-3">
+      <a routerLink="/" class="landing-brand d-flex align-items-center gap-2 text-decoration-none">
+        <img src="logo.png" alt="Stride365" class="landing-logo" />
+      </a>
+
+      <div class="d-none d-md-flex align-items-center gap-1">
+        <button type="button" class="btn btn-sm btn-ghost" (click)="scrollTo('features')">
+          Características
+        </button>
+        <button type="button" class="btn btn-sm btn-ghost" (click)="scrollTo('how')">
+          Cómo funciona
+        </button>
+        <button type="button" class="btn btn-sm btn-ghost" (click)="scrollTo('pricing')">
+          Precios
+        </button>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <button
+          type="button"
+          class="theme-toggle"
+          (click)="theme.toggle()"
+          [attr.aria-label]="theme.isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+          [title]="theme.isDark() ? 'Modo claro' : 'Modo oscuro'"
+        >
+          @if (theme.isDark()) {
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.5" />
+            <line x1="12" y1="2" x2="12" y2="4.5" />
+            <line x1="12" y1="19.5" x2="12" y2="22" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="2" y1="12" x2="4.5" y2="12" />
+            <line x1="19.5" y1="12" x2="22" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+          } @else {
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          }
+        </button>
+
+        @if (auth.isAuthenticated()) {
+        <a routerLink="/feed" class="btn btn-primary btn-sm">Ir a mi feed</a>
+        } @else {
+        <a routerLink="/auth/login" class="btn btn-ghost btn-sm d-none d-sm-inline-flex">
+          Iniciar sesión
+        </a>
+        <a routerLink="/auth/register" class="btn btn-primary btn-sm">Crear cuenta</a>
+        }
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─── Hero ──────────────────────────────────────────────────────── -->
+  <header class="landing-hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="container position-relative">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-7">
+          <span class="hero-eyebrow">Plataforma deportiva · Clubes & atletas</span>
+          <h1 class="hero-title">
+            Gestiona tu club deportivo, <span class="hero-accent">vive el deporte.</span>
+          </h1>
+          <p class="hero-lead">
+            Stride365 es la plataforma todo-en-uno para clubes, socios y guías. Administra socios,
+            organiza actividades, comparte comunicados y mantén viva tu comunidad deportiva
+            durante los 365 días del año.
+          </p>
+
+          <div class="hero-cta d-flex flex-wrap gap-3 mt-4">
+            @if (auth.isAuthenticated()) {
+            <a routerLink="/feed" class="btn btn-primary btn-lg">Entrar al feed</a>
+            <a routerLink="/clubes" class="btn btn-outline-primary btn-lg">Explorar clubes</a>
+            } @else {
+            <a routerLink="/auth/register" class="btn btn-primary btn-lg">Empezar gratis</a>
+            <a routerLink="/auth/login" class="btn btn-outline-primary btn-lg">Iniciar sesión</a>
+            }
+          </div>
+
+          <ul class="hero-bullets mt-4">
+            <li>
+              <span class="check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                  stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
+              Sin instalaciones · accesible desde cualquier dispositivo
+            </li>
+            <li>
+              <span class="check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                  stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
+              Pagos seguros con Stripe y facturación automática
+            </li>
+            <li>
+              <span class="check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                  stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
+              Roles para admins, socios y guías
+            </li>
+          </ul>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="hero-card">
+            <div class="hero-card-head">
+              <div class="hero-card-dot dot-red"></div>
+              <div class="hero-card-dot dot-yellow"></div>
+              <div class="hero-card-dot dot-green"></div>
+              <span class="hero-card-title">stride365.app/feed</span>
+            </div>
+            <div class="hero-card-body">
+              <div class="mock-post">
+                <div class="mock-avatar">SE</div>
+                <div class="flex-grow-1">
+                  <div class="mock-name">Sella Endurance</div>
+                  <div class="mock-meta">Comunicado · hace 2 h</div>
+                  <p class="mock-text">
+                    Mañana abrimos inscripciones para la marcha de primavera. ¡Plazas limitadas!
+                  </p>
+                </div>
+              </div>
+              <div class="mock-post">
+                <div class="mock-avatar mock-avatar-alt">PA</div>
+                <div class="flex-grow-1">
+                  <div class="mock-name">Palomitas Team</div>
+                  <div class="mock-meta">Actividad · sábado 09:00</div>
+                  <p class="mock-text">Salida de 25 km · ruta del río. 14 inscritos.</p>
+                </div>
+              </div>
+              <div class="mock-stat">
+                <div>
+                  <div class="mock-stat-label">Socios activos</div>
+                  <div class="mock-stat-value">128</div>
+                </div>
+                <div>
+                  <div class="mock-stat-label">Actividades</div>
+                  <div class="mock-stat-value">42</div>
+                </div>
+                <div>
+                  <div class="mock-stat-label">Comunicados</div>
+                  <div class="mock-stat-value">17</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── Features ──────────────────────────────────────────────────── -->
+  <section id="features" class="landing-section">
+    <div class="container">
+      <div class="section-head text-center mx-auto">
+        <span class="section-eyebrow">Todo lo que necesita un club moderno</span>
+        <h2 class="section-title">Una plataforma, todas las herramientas</h2>
+        <p class="section-lead">
+          Desde la gestión administrativa hasta el día a día de tus socios, Stride365 cubre cada
+          paso del ciclo de vida de tu club.
+        </p>
+      </div>
+
+      <div class="row g-4 mt-2">
+        @for (f of features; track f.title) {
+        <div class="col-md-6 col-lg-4">
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              @switch (f.icon) {
+              @case ('shield') {
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5l-8-3z" />
+              </svg>
+              }
+              @case ('people') {
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+                <circle cx="10" cy="8" r="3.5" />
+                <path d="M21 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M17 4.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              }
+              @case ('calendar') {
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4.5" width="18" height="17" rx="2.5" />
+                <line x1="3" y1="9.5" x2="21" y2="9.5" />
+                <line x1="8" y1="2.5" x2="8" y2="6.5" />
+                <line x1="16" y1="2.5" x2="16" y2="6.5" />
+              </svg>
+              }
+              @case ('feed') {
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16v6H4z" />
+                <path d="M4 14h10v6H4z" />
+                <path d="M18 14h2v6h-2z" />
+              </svg>
+              }
+              @case ('megaphone') {
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z" />
+                <path d="M16 8c1.5 1 2.5 2.5 2.5 4S17.5 15 16 16" />
+              </svg>
+              }
+              @case ('card') {
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2.5" y="5.5" width="19" height="13" rx="2.5" />
+                <line x1="2.5" y1="10" x2="21.5" y2="10" />
+                <line x1="6" y1="15" x2="10" y2="15" />
+              </svg>
+              }
+              }
+            </div>
+            <h3 class="feature-title">{{ f.title }}</h3>
+            <p class="feature-desc">{{ f.description }}</p>
+          </article>
+        </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Cómo funciona ─────────────────────────────────────────────── -->
+  <section id="how" class="landing-section landing-section-alt">
+    <div class="container">
+      <div class="section-head text-center mx-auto">
+        <span class="section-eyebrow">Empieza en 3 pasos</span>
+        <h2 class="section-title">Cómo funciona Stride365</h2>
+      </div>
+
+      <div class="row g-4 mt-2">
+        @for (s of steps; track s.title; let i = $index) {
+        <div class="col-md-4">
+          <div class="step-card">
+            <div class="step-number">{{ i + 1 }}</div>
+            <h3 class="step-title">{{ s.title }}</h3>
+            <p class="step-desc">{{ s.description }}</p>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Pricing ───────────────────────────────────────────────────── -->
+  <section id="pricing" class="landing-section">
+    <div class="container">
+      <div class="section-head text-center mx-auto">
+        <span class="section-eyebrow">Precios claros, sin sorpresas</span>
+        <h2 class="section-title">Cuotas anuales</h2>
+        <p class="section-lead">
+          Probar la plataforma es gratis. Solo pagas cuando quieres registrar un club o
+          afiliarte como socio a uno existente.
+        </p>
+      </div>
+
+      <div class="row g-4 mt-2 justify-content-center">
+        <div class="col-md-6 col-lg-5">
+          <article class="pricing-card">
+            <div class="pricing-tag">Para socios</div>
+            <h3 class="pricing-name">{{ pricing.socio.label }}</h3>
+            <div class="pricing-amount">{{ pricing.socio.amountLabel }}</div>
+            <p class="pricing-desc">{{ pricing.socio.description }}</p>
+            <ul class="pricing-list">
+              <li>Acceso al feed de tu club</li>
+              <li>Inscripción a actividades</li>
+              <li>Recepción de comunicados</li>
+              <li>Facturas automáticas</li>
+            </ul>
+            @if (!auth.isAuthenticated()) {
+            <a routerLink="/auth/register" class="btn btn-outline-primary w-100 mt-3">
+              Crear cuenta de socio
+            </a>
+            } @else {
+            <a routerLink="/clubes" class="btn btn-outline-primary w-100 mt-3">
+              Explorar clubes
+            </a>
+            }
+          </article>
+        </div>
+
+        <div class="col-md-6 col-lg-5">
+          <article class="pricing-card pricing-card-featured">
+            <div class="pricing-tag pricing-tag-featured">Para clubes</div>
+            <h3 class="pricing-name">{{ pricing.club.label }}</h3>
+            <div class="pricing-amount">{{ pricing.club.amountLabel }}</div>
+            <p class="pricing-desc">{{ pricing.club.description }}</p>
+            <ul class="pricing-list">
+              <li>Panel de administración completo</li>
+              <li>Gestión de socios y guías</li>
+              <li>Publicación de comunicados y actividades</li>
+              <li>Cobro de cuotas con Stripe</li>
+              <li>Soporte por email</li>
+            </ul>
+            @if (!auth.isAuthenticated()) {
+            <a routerLink="/auth/register" class="btn btn-primary w-100 mt-3">
+              Registrar mi club
+            </a>
+            } @else {
+            <a routerLink="/clubes" class="btn btn-primary w-100 mt-3">Ir a mis clubes</a>
+            }
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── CTA final ─────────────────────────────────────────────────── -->
+  <section class="landing-cta">
+    <div class="container">
+      <div class="cta-box">
+        <div>
+          <h2 class="cta-title">¿Listo para llevar tu club al siguiente nivel?</h2>
+          <p class="cta-text mb-0">
+            Únete a Stride365 y empieza a digitalizar tu club deportivo en minutos.
+          </p>
+        </div>
+        <div class="d-flex flex-wrap gap-3">
+          @if (auth.isAuthenticated()) {
+          <a routerLink="/feed" class="btn btn-primary btn-lg">Entrar al feed</a>
+          } @else {
+          <a routerLink="/auth/register" class="btn btn-primary btn-lg">Crear cuenta</a>
+          <a routerLink="/auth/login" class="btn btn-outline-light btn-lg">Iniciar sesión</a>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Footer ────────────────────────────────────────────────────── -->
+  <footer class="landing-footer">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div class="d-flex align-items-center gap-2">
+        <img src="logo.png" alt="Stride365" class="landing-logo landing-logo-sm" />
+        <span class="footer-copy">© {{ 2026 }} Stride365 · Todos los derechos reservados</span>
+      </div>
+      <div class="d-flex gap-3">
+        <a routerLink="/auth/login" class="footer-link">Iniciar sesión</a>
+        <a routerLink="/auth/register" class="footer-link">Crear cuenta</a>
+      </div>
+    </div>
+  </footer>
+</div>

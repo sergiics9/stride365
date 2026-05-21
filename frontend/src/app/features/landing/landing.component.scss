@@ -1,0 +1,750 @@
+@use 'sass:color';
+@use '../../../styles/variables' as *;
+
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.landing {
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 90% -10%, rgba($brand-500, 0.10), transparent 60%),
+    radial-gradient(900px 500px at -10% 0%, rgba($ink-900, 0.05), transparent 60%),
+    $body-bg;
+  color: $ink-900;
+}
+
+// ─── Navbar ────────────────────────────────────────────────────────────
+.landing-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba($body-bg, 0.85);
+  backdrop-filter: saturate(160%) blur(10px);
+  border-bottom: 1px solid rgba($ink-150, 0.6);
+}
+
+.landing-brand {
+  position: relative;
+  padding-left: 0.65rem;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 1.3rem;
+    border-radius: 2px;
+    background: linear-gradient(180deg, $brand-400, $brand-600);
+    box-shadow: 0 0 12px rgba($brand-500, 0.5);
+  }
+}
+
+.landing-logo {
+  height: 36px;
+  width: auto;
+  display: block;
+}
+
+.landing-logo-sm {
+  height: 26px;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid transparent;
+  color: $ink-700;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba($ink-150, 0.45);
+    color: $ink-950;
+  }
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid $ink-150;
+  background: $white;
+  color: $ink-700;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: $ink-50;
+    color: $ink-950;
+    border-color: $ink-200;
+  }
+}
+
+// ─── Hero ──────────────────────────────────────────────────────────────
+.landing-hero {
+  position: relative;
+  padding: 5rem 0 5rem;
+  overflow: hidden;
+}
+
+.hero-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(600px 300px at 70% 30%, rgba($brand-500, 0.18), transparent 60%),
+    radial-gradient(400px 220px at 15% 70%, rgba($brand-300, 0.18), transparent 60%);
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  font-family: 'Manrope', $font-family-sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $brand-700;
+  background: $brand-100;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba($brand-500, 0.18);
+}
+
+.hero-title {
+  font-family: 'Manrope', $font-family-sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  line-height: 1.05;
+  color: $ink-950;
+  margin: 1rem 0 1.25rem;
+}
+
+.hero-accent {
+  background: linear-gradient(135deg, $brand-500 0%, $brand-700 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-lead {
+  font-size: 1.125rem;
+  color: $ink-500;
+  max-width: 56ch;
+  line-height: 1.55;
+}
+
+.hero-cta .btn {
+  padding: 0.9rem 1.5rem;
+}
+
+.hero-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: $ink-700;
+    font-size: 0.95rem;
+  }
+
+  .check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: $brand-100;
+    color: $brand-700;
+    flex-shrink: 0;
+  }
+}
+
+// Mock card en el hero
+.hero-card {
+  background: $white;
+  border: 1px solid $ink-150;
+  border-radius: $border-radius-lg;
+  box-shadow: var(--s365-shadow-lg);
+  overflow: hidden;
+  transform: rotate(-1.5deg);
+  transition: transform 0.4s ease;
+
+  &:hover {
+    transform: rotate(0deg) translateY(-4px);
+  }
+}
+
+.hero-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.9rem;
+  background: $ink-50;
+  border-bottom: 1px solid $ink-150;
+}
+
+.hero-card-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+
+  &.dot-red    { background: #ff6058; }
+  &.dot-yellow { background: #f7bd49; }
+  &.dot-green  { background: #28c941; }
+}
+
+.hero-card-title {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: $ink-400;
+  font-weight: 500;
+}
+
+.hero-card-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mock-post {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  background: $ink-25;
+  border: 1px solid $ink-150;
+  border-radius: $border-radius;
+}
+
+.mock-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, $brand-500, $brand-700);
+  color: $white;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.mock-avatar-alt {
+  background: linear-gradient(135deg, $ink-700, $ink-900);
+}
+
+.mock-name {
+  font-weight: 700;
+  color: $ink-900;
+  font-size: 0.95rem;
+}
+
+.mock-meta {
+  font-size: 0.75rem;
+  color: $ink-400;
+  margin-bottom: 0.35rem;
+}
+
+.mock-text {
+  font-size: 0.88rem;
+  color: $ink-700;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.mock-stat {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed $ink-150;
+  text-align: center;
+}
+
+.mock-stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $ink-400;
+  font-weight: 600;
+}
+
+.mock-stat-value {
+  font-family: 'Manrope', $font-family-sans-serif;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: $ink-950;
+}
+
+// ─── Sections ──────────────────────────────────────────────────────────
+.landing-section {
+  padding: 5rem 0;
+}
+
+.landing-section-alt {
+  background:
+    linear-gradient(180deg, transparent 0%, rgba($brand-100, 0.5) 50%, transparent 100%);
+}
+
+.section-head {
+  max-width: 700px;
+  margin-bottom: 2rem;
+}
+
+.section-eyebrow {
+  display: inline-block;
+  font-family: 'Manrope', $font-family-sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: $brand-600;
+  margin-bottom: 0.5rem;
+}
+
+.section-title {
+  font-family: 'Manrope', $font-family-sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  color: $ink-950;
+  margin: 0 0 1rem;
+}
+
+.section-lead {
+  color: $ink-500;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+// ─── Feature cards ─────────────────────────────────────────────────────
+.feature-card {
+  background: $white;
+  border: 1px solid $ink-150;
+  border-radius: $border-radius-lg;
+  padding: 1.5rem;
+  height: 100%;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  box-shadow: var(--s365-shadow-sm);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--s365-shadow-md);
+    border-color: rgba($brand-500, 0.25);
+  }
+}
+
+.feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: $border-radius;
+  background: $brand-100;
+  color: $brand-700;
+  margin-bottom: 1rem;
+}
+
+.feature-title {
+  font-family: 'Manrope', $font-family-sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: $ink-950;
+  margin: 0 0 0.5rem;
+}
+
+.feature-desc {
+  color: $ink-500;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+// ─── Steps ─────────────────────────────────────────────────────────────
+.step-card {
+  background: $white;
+  border: 1px solid $ink-150;
+  border-radius: $border-radius-lg;
+  padding: 1.75rem 1.5rem;
+  height: 100%;
+  text-align: center;
+  position: relative;
+  box-shadow: var(--s365-shadow-sm);
+}
+
+.step-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, $brand-500, $brand-700);
+  color: $white;
+  font-family: 'Manrope', $font-family-sans-serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  box-shadow: 0 6px 16px rgba($brand-500, 0.32);
+}
+
+.step-title {
+  font-family: 'Manrope', $font-family-sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: $ink-950;
+  margin: 0 0 0.5rem;
+}
+
+.step-desc {
+  color: $ink-500;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+// ─── Pricing ───────────────────────────────────────────────────────────
+.pricing-card {
+  background: $white;
+  border: 1px solid $ink-150;
+  border-radius: $border-radius-lg;
+  padding: 2rem 1.75rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--s365-shadow-sm);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--s365-shadow-md);
+  }
+}
+
+.pricing-card-featured {
+  border: 1px solid rgba($brand-500, 0.4);
+  background:
+    linear-gradient(180deg, rgba($brand-100, 0.55) 0%, $white 60%);
+  box-shadow: 0 18px 40px rgba($brand-500, 0.12), 0 4px 12px rgba($brand-500, 0.06);
+
+  &:hover {
+    box-shadow: 0 22px 50px rgba($brand-500, 0.18), 0 6px 16px rgba($brand-500, 0.08);
+  }
+}
+
+.pricing-tag {
+  display: inline-block;
+  font-family: 'Manrope', $font-family-sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $ink-500;
+  background: $ink-100;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  align-self: flex-start;
+  margin-bottom: 1rem;
+}
+
+.pricing-tag-featured {
+  color: $white;
+  background: linear-gradient(135deg, $brand-500, $brand-700);
+}
+
+.pricing-name {
+  font-family: 'Manrope', $font-family-sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: $ink-950;
+  margin: 0 0 0.4rem;
+}
+
+.pricing-amount {
+  font-family: 'Manrope', $font-family-sans-serif;
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: $ink-950;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.6rem;
+}
+
+.pricing-desc {
+  color: $ink-500;
+  font-size: 0.95rem;
+  margin: 0 0 1rem;
+}
+
+.pricing-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem;
+  flex-grow: 1;
+
+  li {
+    position: relative;
+    padding: 0.4rem 0 0.4rem 1.5rem;
+    color: $ink-700;
+    font-size: 0.95rem;
+    border-bottom: 1px dashed rgba($ink-150, 0.7);
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: $brand-100;
+      box-shadow: inset 0 0 0 1px rgba($brand-500, 0.35);
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 50%;
+      width: 5px;
+      height: 8px;
+      border-right: 2px solid $brand-700;
+      border-bottom: 2px solid $brand-700;
+      transform: translateY(-65%) rotate(45deg);
+    }
+
+    &:last-child { border-bottom: 0; }
+  }
+}
+
+// ─── CTA final ─────────────────────────────────────────────────────────
+.landing-cta {
+  padding: 3.5rem 0 5rem;
+}
+
+.cta-box {
+  background: linear-gradient(135deg, $ink-950 0%, $ink-800 60%, $brand-700 130%);
+  border-radius: $border-radius-lg;
+  padding: 2.25rem 2rem;
+  color: $white;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 20px 50px rgba($ink-950, 0.25);
+}
+
+.cta-title {
+  font-family: 'Manrope', $font-family-sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  color: $white;
+  margin: 0 0 0.4rem;
+  letter-spacing: -0.02em;
+}
+
+.cta-text {
+  color: rgba($white, 0.78);
+  font-size: 1rem;
+}
+
+.cta-box .btn-outline-light {
+  border-color: rgba($white, 0.4);
+  color: $white;
+
+  &:hover, &:focus-visible {
+    background: rgba($white, 0.1);
+    border-color: $white;
+    color: $white;
+  }
+}
+
+// ─── Footer ────────────────────────────────────────────────────────────
+.landing-footer {
+  border-top: 1px solid $ink-150;
+  padding: 1.5rem 0;
+  background: $body-bg;
+}
+
+.footer-copy {
+  font-size: 0.85rem;
+  color: $ink-400;
+}
+
+.footer-link {
+  font-size: 0.9rem;
+  color: $ink-500;
+  text-decoration: none;
+  font-weight: 500;
+
+  &:hover { color: $brand-600; }
+}
+
+// ─── Dark mode overrides ───────────────────────────────────────────────
+:host-context([data-bs-theme='dark']) {
+  .landing {
+    background:
+      radial-gradient(1200px 600px at 90% -10%, rgba($brand-500, 0.15), transparent 60%),
+      radial-gradient(900px 500px at -10% 0%, rgba($brand-700, 0.10), transparent 60%),
+      #0f1117;
+    color: #dde1e8;
+  }
+
+  .landing-nav {
+    background: rgba(15, 17, 23, 0.85);
+    border-bottom-color: #2d3148;
+  }
+
+  .btn-ghost {
+    color: #c2c8d2;
+
+    &:hover, &:focus-visible {
+      background: rgba(255, 255, 255, 0.06);
+      color: #f0f4f8;
+    }
+  }
+
+  .theme-toggle {
+    background: #1a1d27;
+    border-color: #2d3148;
+    color: #c2c8d2;
+
+    &:hover, &:focus-visible {
+      background: #242742;
+      color: #f0f4f8;
+    }
+  }
+
+  .hero-title,
+  .section-title,
+  .feature-title,
+  .step-title,
+  .pricing-name,
+  .pricing-amount,
+  .mock-name,
+  .mock-stat-value { color: #f0f4f8; }
+
+  .hero-accent {
+    background: linear-gradient(135deg, #5c8bff 0%, #8aaaff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero-lead,
+  .section-lead,
+  .feature-desc,
+  .step-desc,
+  .pricing-desc,
+  .mock-text {
+    color: #8a93a1;
+  }
+
+  .hero-eyebrow {
+    color: #8aaaff;
+    background: rgba(47, 107, 255, 0.15);
+    box-shadow: inset 0 0 0 1px rgba(92, 139, 255, 0.30);
+  }
+
+  .section-eyebrow { color: #8aaaff; }
+
+  .hero-bullets li { color: #c2c8d2; }
+  .hero-bullets .check {
+    background: rgba(47, 107, 255, 0.18);
+    color: #8aaaff;
+  }
+
+  .hero-card,
+  .feature-card,
+  .step-card,
+  .pricing-card {
+    background: #1a1d27;
+    border-color: #2d3148;
+  }
+
+  .pricing-card-featured {
+    background: linear-gradient(180deg, rgba(47, 107, 255, 0.12) 0%, #1a1d27 60%);
+    border-color: rgba(92, 139, 255, 0.4);
+  }
+
+  .hero-card-head {
+    background: #13151f;
+    border-bottom-color: #2d3148;
+  }
+
+  .hero-card-title { color: #8a93a1; }
+
+  .mock-post {
+    background: #13151f;
+    border-color: #2d3148;
+  }
+
+  .mock-meta,
+  .mock-stat-label,
+  .footer-copy,
+  .footer-link { color: #8a93a1; }
+
+  .mock-stat { border-top-color: rgba(45, 49, 72, 0.7); }
+
+  .feature-icon {
+    background: rgba(47, 107, 255, 0.16);
+    color: #8aaaff;
+  }
+
+  .landing-section-alt {
+    background:
+      linear-gradient(180deg, transparent 0%, rgba(47, 107, 255, 0.08) 50%, transparent 100%);
+  }
+
+  .pricing-tag {
+    background: #242742;
+    color: #c2c8d2;
+  }
+
+  .pricing-list li {
+    color: #c2c8d2;
+    border-bottom-color: rgba(45, 49, 72, 0.6);
+
+    &::before {
+      background: rgba(47, 107, 255, 0.18);
+      box-shadow: inset 0 0 0 1px rgba(92, 139, 255, 0.4);
+    }
+    &::after {
+      border-color: #8aaaff;
+    }
+  }
+
+  .landing-footer {
+    background: #0f1117;
+    border-top-color: #2d3148;
+  }
+}
+
+// ─── Responsive ────────────────────────────────────────────────────────
+@media (max-width: 991.98px) {
+  .landing-hero { padding: 3rem 0 3.5rem; }
+  .landing-section { padding: 3.5rem 0; }
+  .hero-card { margin-top: 1rem; transform: none; }
+  .cta-box { padding: 1.75rem 1.5rem; }
+}
+
+@media (max-width: 575.98px) {
+  .hero-cta .btn { width: 100%; }
+}
