@@ -5,12 +5,12 @@ export const environment = {
   pricing: {
     club: {
       label: 'Cuota anual de club',
-      amountLabel: '129,99 $ / año',
+      amountLabel: '129,99 € / año',
       description: 'Permite registrar y mantener un club en la plataforma.',
     },
     socio: {
       label: 'Cuota anual de socio',
-      amountLabel: '39,99 $ / año',
+      amountLabel: '39,99 € / año',
       description: 'Acceso a actividades, inscripciones y comunicados del club.',
     },
   },
