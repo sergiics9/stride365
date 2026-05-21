@@ -78,6 +78,7 @@ class InscripcionController extends Controller
         ]);
 
         $inscripcion->load('user:id,nombre,apellido,email');
+        $actividad->loadMissing('club:id,nombre,slug');
         $inscripcion->user?->notify(new InscripcionConfirmadaNotification($actividad));
 
         return response()->json($inscripcion, 201);

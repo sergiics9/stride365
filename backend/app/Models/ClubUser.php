@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\SocioActivadoNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -150,6 +151,9 @@ class ClubUser extends Model
             $stripePeriodEnd = null;
         }
 
+        $wasActivating = $membership->status === self::STATUS_PENDING
+            && in_array($status, [self::STATUS_ACTIVE, self::STATUS_GRACE], true);
+
         $membership->fill([
             'subscription_name' => $subscription->type,
             'stripe_subscription_id' => $subscription->stripe_id,
@@ -158,6 +162,19 @@ class ClubUser extends Model
             'current_period_end' => $stripePeriodEnd,
             'ends_at' => $subscription->ends_at,
         ])->save();
+
+        // Enviar email de bienvenida la primera vez que la membresía se activa.
+        if ($wasActivating) {
+            try {
+                $user = $membership->user;
+                $club = Club::find($parsed['club_id']);
+                if ($user && $club) {
+                    $user->notify(new SocioActivadoNotification($club, $parsed['role']));
+                }
+            } catch (Throwable $e) {
+                // No bloquear el flujo si falla el email
+            }
+        }
 
         return $membership->fresh();
     }
