@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="frontend/src/assets/logostride.png" alt="Stride365" width="400">
+</p>
+
 # Stride365
 
 Plataforma web SaaS para la gestión integral de clubes deportivos. Permite crear y administrar clubs, gestionar socios, planificar actividades con mapas interactivos, publicar en un feed social, enviar comunicados y cobrar cuotas anuales mediante Stripe.
