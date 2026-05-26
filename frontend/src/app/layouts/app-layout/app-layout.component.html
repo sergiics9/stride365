@@ -17,6 +17,18 @@
         <li class="nav-item">
           <a class="nav-link" routerLink="/clubes" routerLinkActive="active">Clubes</a>
         </li>
+
+        @if (auth.isSuperAdmin()) {
+        <li class="nav-item">
+          <a class="nav-link d-flex align-items-center gap-1" href="/admin">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5l-8-3z" />
+            </svg>
+            Admin
+          </a>
+        </li>
+        }
       </ul>
 
       <ul class="navbar-nav align-items-lg-center gap-1">
