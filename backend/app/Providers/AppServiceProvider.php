@@ -22,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // El reset de contraseña lo gestiona Angular, no las rutas web de Laravel.
         ResetPassword::createUrlUsing(function (object $notifiable, string $token): string {
             $base = rtrim((string) config('app.frontend_url'), '/');
             $email = urlencode($notifiable->getEmailForPasswordReset());

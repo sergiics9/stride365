@@ -304,6 +304,7 @@ class Actividad extends Model implements HasMedia
         }
 
         if (count($needIdx) < 2) {
+            // Menos de dos vértices sin cota: no tiene sentido calcular desnivel ni llamar a la API.
             return $coords;
         }
 
@@ -340,6 +341,7 @@ class Actividad extends Model implements HasMedia
         if ($n >= 4 && is_numeric($c[2])) {
             return true;
         }
+        // En [lng, lat, z]: z < 1e9 es cota; valores mayores son timestamps del feed en vivo.
         if ($n === 3 && is_numeric($c[2]) && (float) $c[2] < 1_000_000_000) {
             return true;
         }

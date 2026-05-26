@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class StripeWebhookController extends CashierWebhookController
 {
+    // Tras que Cashier persista la suscripción, reflejamos el estado en club_user.
     public function handleCustomerSubscriptionCreated(array $payload): Response
     {
         parent::handleCustomerSubscriptionCreated($payload);
@@ -42,6 +43,7 @@ class StripeWebhookController extends CashierWebhookController
         $invoiceId = $invoiceData['id'] ?? null;
         $subscriptionId = $invoiceData['subscription'] ?? null;
 
+        // Renovar current_period_end y activar membresías pending tras el cobro.
         if ($subscriptionId) {
             $local = Subscription::where('stripe_id', $subscriptionId)->first();
             if ($local) {
@@ -49,6 +51,7 @@ class StripeWebhookController extends CashierWebhookController
             }
         }
 
+        // Email con PDF de factura (en local solo llega si stripe listen está activo).
         if ($customerId && $invoiceId) {
             $user = User::where('stripe_id', $customerId)->first();
             if ($user) {

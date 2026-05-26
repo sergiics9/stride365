@@ -11,7 +11,7 @@ import {
 import { RoleName } from '../../shared/models';
 import { AuthService } from '../auth/auth.service';
 
-/** Id numérico tras `/clubes/` en el árbol de URL (primary outlet). */
+// Busca el id del club en la URL completa, p. ej. /clubes/3/actividades → 3.
 function clubIdFromUrlTree(tree: UrlTree | null | undefined): number | null {
   const primary = tree?.root.children[PRIMARY_OUTLET];
   if (!primary) {
@@ -38,11 +38,10 @@ function clubIdFromSegmentList(segments: readonly UrlSegment[]): number | null {
   return null;
 }
 
-/**
- * En `canMatch` de rutas con `loadChildren`, `segments` suele ser solo el trozo que se está
- * emparejando (p. ej. `actividades`), no `/clubes/1/...`. Por eso resolvemos el id del club
- * desde la navegación en curso (`UrlTree`) y solo usamos `segments` como respaldo.
- */
+
+// En rutas lazy (`loadChildren`), Angular a veces solo pasa el trozo que se
+// está emparejando (p. ej. "actividades"), no la URL entera. Por eso miramos
+// la navegación en curso y, si hace falta, la URL actual del router.
 function resolveClubIdForGuard(router: Router, segments: readonly UrlSegment[]): number | null {
   const nav: Navigation | null = router.currentNavigation() ?? router.getCurrentNavigation();
 
@@ -63,10 +62,9 @@ function resolveClubIdForGuard(router: Router, segments: readonly UrlSegment[]):
   return clubIdFromUrlTree(router.parseUrl(router.url));
 }
 
-/**
- * Restringe rutas a roles globales Spatie (super_admin, usuario).
- * Para roles por-club usar `clubMembershipGuard`.
- */
+
+// Comprueba roles globales de Spatie (super_admin, usuario).
+// Para permisos dentro de un club concreto, usar clubMembershipGuard.
 export function roleGuard(...allowedRoles: RoleName[]): CanMatchFn {
   return async () => {
     const auth = inject(AuthService);
@@ -85,11 +83,9 @@ export function roleGuard(...allowedRoles: RoleName[]): CanMatchFn {
   };
 }
 
-/**
- * Permite acceso a una ruta de club si el usuario es super_admin o tiene
- * la membresía requerida en ese club. Lee el `clubId` del path (segmento
- * `:clubId` o `:club`).
- */
+
+// Valida si el usuario puede entrar a una ruta de un club concreto
+// (admin, socio o guía). El super_admin pasa siempre.
 export function clubMembershipGuard(
   ...allowed: Array<'admin' | 'socio' | 'guide'>
 ): CanMatchFn {

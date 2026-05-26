@@ -13,7 +13,7 @@ export class TokenStorageService {
     try {
       localStorage.setItem(TOKEN_KEY, token);
     } catch {
-      /* storage no disponible (modo incógnito, etc.) */
+      
     }
   }
 
@@ -22,7 +22,7 @@ export class TokenStorageService {
     try {
       localStorage.removeItem(TOKEN_KEY);
     } catch {
-      /* noop */
+      
     }
   }
 

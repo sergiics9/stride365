@@ -36,7 +36,7 @@ export class ToastService {
     this.show(message, 'info', durationMs);
   }
 
-  /** Mantenido por compatibilidad; Swal gestiona sus propios timers */
+  
   dismiss(_id?: string): void {
     Swal.close();
   }

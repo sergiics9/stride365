@@ -1,9 +1,5 @@
-// ─── Stride365 — Paleta premium deportiva ──────────────────────────────
-// Negro, blanco, gris y un azul eléctrico como acento.
-
-// Escala de grises (negro → blanco)
-$ink-950: #05070a; // negro casi puro
-$ink-900: #0b0d10; // navbar / textos fuertes
+$ink-950: #05070a;
+$ink-900: #0b0d10;
 $ink-800: #14171c;
 $ink-700: #1f242c;
 $ink-600: #2a313b;
@@ -17,21 +13,18 @@ $ink-50:  #f4f6fa;
 $ink-25:  #f9fafc;
 $white:   #ffffff;
 
-// Azul deportivo (acento)
-$brand-500: #2f6bff; // azul eléctrico principal
+$brand-500: #2f6bff;
 $brand-600: #1e54e6;
 $brand-700: #1843c2;
 $brand-400: #5c8bff;
 $brand-300: #8aaaff;
 $brand-100: #e3ecff;
 
-// Roles funcionales
 $success:  #16a06b;
 $danger:   #e0364f;
 $warning:  #e6a23c;
 $info:     $brand-500;
 
-// Mapeo Bootstrap
 $primary:   $brand-500;
 $secondary: $ink-500;
 $light:     $ink-50;
@@ -40,13 +33,11 @@ $dark:      $ink-900;
 $body-bg:    $ink-25;
 $body-color: $ink-900;
 
-// Tipografía
 $font-family-sans-serif:
   'Inter', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
   'Segoe UI Symbol';
 
-// Radios — más planos y modernos
 $border-radius:    0.625rem;
 $border-radius-sm: 0.4rem;
 $border-radius-lg: 1rem;

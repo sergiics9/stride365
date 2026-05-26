@@ -16,11 +16,13 @@ class EnsureClubMembership
             return response()->json(['message' => 'No autenticado.'], 401);
         }
 
+        // Super admin: acceso global sin comprobar membresía por club.
         if ($user->hasRole('super_admin')) {
             return $next($request);
         }
 
         $clubId = $this->resolveClubId($request);
+        // Rutas sin club en URL/body (p. ej. listados globales): el middleware no filtra.
         if (! $clubId) {
             return $next($request);
         }
@@ -49,6 +51,7 @@ class EnsureClubMembership
         return $next($request);
     }
 
+    /** Club desde parámetro de ruta ({club}, {clubId}) o club_id en el cuerpo JSON. */
     private function resolveClubId(Request $request): ?int
     {
         $param = $request->route('club') ?? $request->route('clubId');

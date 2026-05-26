@@ -28,6 +28,7 @@ final class OpenTopoDataElevation
 
         $out = [];
         foreach (array_chunk($latLngPairs, self::MAX_LOCATIONS_PER_REQUEST) as $chunkIndex => $chunk) {
+            // API pública: ~1 req/s; pausa entre lotes de 100 puntos.
             if ($chunkIndex > 0) {
                 usleep(1_100_000);
             }

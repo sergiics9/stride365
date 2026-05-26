@@ -25,6 +25,7 @@ final class GpxTrackParser
         }
 
         $xp = new DOMXPath($dom);
+        // local-name() ignora namespaces (gpx:, etc.) y localiza trkpt en cualquier GPX válido.
         $nodes = $xp->query('//*[local-name()="trkpt"]');
         if ($nodes === false || $nodes->length < 2) {
             throw new \InvalidArgumentException('No se encontraron puntos trkpt');
@@ -59,6 +60,8 @@ final class GpxTrackParser
                 }
             }
 
+            // GeoJSON interno: [lng, lat] | [lng, lat, ts] | [lng, lat, ele] | [lng, lat, ele, ts] | + FC
+            // GPX de Strava sin <time> solo aporta elevación → sin duración ni ritmo al importar.
             $row = [$lon, $lat];
             if ($ele !== null && $ts !== null) {
                 $row[] = round($ele, 1);

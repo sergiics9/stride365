@@ -21,6 +21,7 @@ class FeedRecordingController extends Controller
         ]);
 
         DB::transaction(function () use ($user) {
+            // Solo una grabación personal en curso: la anterior se cancela al iniciar otra.
             Actividad::query()
                 ->where('user_id', $user->id)
                 ->whereNull('club_id')
@@ -109,6 +110,7 @@ class FeedRecordingController extends Controller
         $now = now();
 
         $dur = TrackMetrics::durationSecondsFromCoords($coords);
+        // Si el móvil no envió timestamps en cada punto, usamos tiempo desde fecha_inicio.
         if ($dur === null && $actividad->fecha_inicio) {
             $dur = max(0, (int) $actividad->fecha_inicio->diffInSeconds($now));
         }
@@ -211,6 +213,7 @@ class FeedRecordingController extends Controller
         if ($dur === null) {
             $dur = TrackMetrics::durationSecondsFromCoords($coords);
         }
+        // Sin <time> en el GPX: distancia y desnivel sí; duración/ritmo quedan null.
 
         $pace = TrackMetrics::paceSecondsPerKm($dur, $distancia);
         $dplus = TrackMetrics::positiveElevationGainMFromCoords($coords);
@@ -344,6 +347,7 @@ class FeedRecordingController extends Controller
         }
         if (! array_key_exists(3, $p) || $p[3] === null) {
             $v2 = (float) $p[2];
+            // Solo 3 valores: el tercero es timestamp unix si supera ~1e9, si no es cota (m).
             if ($v2 > 1_000_000_000) {
                 $row[] = (int) $v2;
 
@@ -353,6 +357,7 @@ class FeedRecordingController extends Controller
 
             return $row;
         }
+        // Formato completo del feed en vivo: [lng, lat, ele, ts] o con FC en índice 4.
         $row[] = (float) $p[2];
         $row[] = (int) $p[3];
         if (array_key_exists(4, $p) && $p[4] !== null) {

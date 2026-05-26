@@ -47,12 +47,12 @@ export class FeedDetailComponent implements AfterViewInit {
   private readonly feedService = inject(FeedService);
   private readonly router = inject(Router);
 
-  /** Input del resolver (inmutable); se sincroniza con _pub para permitir actualizaciones locales */
+  
   readonly publicacion = input<PublicacionFeed | null>(null);
 
   private readonly _pub = signal<PublicacionFeed | null>(null);
 
-  /** Publicación local que puede actualizarse tras edición sin recargar el resolver */
+  
   protected readonly pub = this._pub.asReadonly();
 
   private readonly seoEffect = effect(() => {
@@ -79,7 +79,7 @@ export class FeedDetailComponent implements AfterViewInit {
     (this._pub()?.media ?? []).filter((m) => m.mime_type?.startsWith('image/')),
   );
 
-  /** El usuario actual es el creador de la publicación o super_admin */
+  
   protected readonly isOwner = computed(() => {
     const p = this._pub();
     const user = this.auth.user();
@@ -107,7 +107,7 @@ export class FeedDetailComponent implements AfterViewInit {
     () => this.trackGeoJson() !== null || this.gpx()?.original_url,
   );
 
-  // --- Estado modal edición ---
+  
   protected readonly showEditModal = signal(false);
   protected editTitulo = '';
   protected editDescripcion = '';
@@ -117,7 +117,6 @@ export class FeedDetailComponent implements AfterViewInit {
   private mapBundle: MapBundle | null = null;
 
   constructor() {
-    // Sincroniza el input con el signal local
     effect(() => {
       const incoming = this.publicacion();
       if (incoming !== null) {
@@ -125,6 +124,7 @@ export class FeedDetailComponent implements AfterViewInit {
       }
     });
 
+    // El mapa puede venir como GeoJSON guardado en la actividad o como archivo GPX adjunto.
     effect(() => {
       const container = this.mapContainer()?.nativeElement;
       if (!container || !this.hasMap()) return;
@@ -148,10 +148,10 @@ export class FeedDetailComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    /* effect handles initialization */
+    
   }
 
-  /** Abre el modal de edición con los valores actuales */
+  
   protected openEditModal(): void {
     const p = this._pub();
     this.editTitulo = p?.titulo ?? '';
@@ -252,6 +252,7 @@ export class FeedDetailComponent implements AfterViewInit {
     }
   }
 
+  // Cuando solo tenemos un GPX externo, leaflet-gpx lo descarga y dibuja la ruta.
   private async renderTrack(container: HTMLDivElement, gpxUrl: string): Promise<void> {
     this.mapStatus.set('loading');
 

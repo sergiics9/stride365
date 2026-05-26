@@ -13,7 +13,7 @@ export interface ClubApplication extends Club {
 export interface CreateClubApplicationPayload {
   nombre: string;
   descripcion?: string | null;
-  /** Imagen opcional; se envía como multipart `logo`. */
+  
   logo?: File | null;
   direccion?: string | null;
   telefono?: string | null;

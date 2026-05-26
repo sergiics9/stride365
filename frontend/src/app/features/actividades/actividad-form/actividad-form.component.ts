@@ -114,9 +114,9 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
   protected readonly submitting = signal(false);
   protected readonly serverError = signal<string | null>(null);
 
-  /** Socios del club con rol guía (`is_guide`), para asignar a la actividad. */
+  
   protected readonly guiasDisponibles = signal<Socio[]>([]);
-  /** IDs de usuario (`users.id`) enlazados en `actividad_guia`. */
+  
   protected readonly guiaUserIdsSeleccionados = signal<number[]>([]);
 
   protected readonly hasTrack = computed(() => this.trackPoints().length >= 2);
@@ -209,6 +209,7 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
     await this.handleModoChange(this.modoActual());
   }
 
+  // En modo "dibujada" el usuario va clicando el mapa para trazar la ruta.
   private async handleModoChange(modo: ModoCreacion): Promise<void> {
     if (!this.map) return;
     this.detachClickHandler();
@@ -284,6 +285,7 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
         }
         return out;
       };
+      // Algunos GPX traen la ruta en <trkpt>, otros en <rtept>.
       const trk = fromPts('trkpt');
       if (trk.length >= 2) {
         return trk;
@@ -342,6 +344,7 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
       if (!geom) return;
       if (geom.type === 'LineString') {
         for (const c of geom.coordinates) {
+          // GeoJSON usa [lng, lat, ele?]; internamente guardamos [lat, lng, ele?].
           if (c.length > 2 && typeof c[2] === 'number') {
             out.push([c[1], c[0], c[2]]);
           } else {
@@ -371,6 +374,7 @@ export class ActividadFormComponent implements AfterViewInit, OnDestroy {
   private buildTrackGeoJson(): GeoJSON.GeoJSON | null {
     const pts = this.trackPoints();
     if (pts.length < 2) return null;
+    // Al guardar, volvemos a invertir a [lng, lat] como exige el estándar GeoJSON.
     const coordinates = pts.map((p) => {
       const c: number[] = [p[1], p[0]];
       if (p.length > 2) {

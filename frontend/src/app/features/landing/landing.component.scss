@@ -15,7 +15,6 @@
   color: $ink-900;
 }
 
-// ─── Navbar ────────────────────────────────────────────────────────────
 .landing-nav {
   position: sticky;
   top: 0;
@@ -85,7 +84,6 @@
   }
 }
 
-// ─── Hero ──────────────────────────────────────────────────────────────
 .landing-hero {
   position: relative;
   padding: 5rem 0 5rem;
@@ -172,7 +170,6 @@
   }
 }
 
-// Mock card en el hero
 .hero-card {
   background: $white;
   border: 1px solid $ink-150;
@@ -290,7 +287,6 @@
   color: $ink-950;
 }
 
-// ─── Sections ──────────────────────────────────────────────────────────
 .landing-section {
   padding: 5rem 0;
 }
@@ -332,7 +328,6 @@
   margin: 0;
 }
 
-// ─── Feature cards ─────────────────────────────────────────────────────
 .feature-card {
   background: $white;
   border: 1px solid $ink-150;
@@ -376,7 +371,6 @@
   margin: 0;
 }
 
-// ─── Steps ─────────────────────────────────────────────────────────────
 .step-card {
   background: $white;
   border: 1px solid $ink-150;
@@ -419,7 +413,6 @@
   margin: 0;
 }
 
-// ─── Pricing ───────────────────────────────────────────────────────────
 .pricing-card {
   background: $white;
   border: 1px solid $ink-150;
@@ -533,7 +526,6 @@
   }
 }
 
-// ─── CTA final ─────────────────────────────────────────────────────────
 .landing-cta {
   padding: 3.5rem 0 5rem;
 }
@@ -576,7 +568,6 @@
   }
 }
 
-// ─── Footer ────────────────────────────────────────────────────────────
 .landing-footer {
   border-top: 1px solid $ink-150;
   padding: 1.5rem 0;
@@ -597,7 +588,6 @@
   &:hover { color: $brand-600; }
 }
 
-// ─── Dark mode overrides ───────────────────────────────────────────────
 :host-context([data-bs-theme='dark']) {
   .landing {
     background:
@@ -737,7 +727,6 @@
   }
 }
 
-// ─── Responsive ────────────────────────────────────────────────────────
 @media (max-width: 991.98px) {
   .landing-hero { padding: 3rem 0 3.5rem; }
   .landing-section { padding: 3.5rem 0; }

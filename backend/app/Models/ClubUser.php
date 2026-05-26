@@ -81,6 +81,7 @@ class ClubUser extends Model
             return null;
         }
 
+        // Convención Cashier: "club-{id}" (admin) o "socio-{id}" (membresía de club).
         if (! preg_match('/^(club|socio)-(\d+)$/', $name, $m)) {
             return null;
         }
@@ -223,6 +224,7 @@ class ClubUser extends Model
 
                 $local = Subscription::where('stripe_id', $stripeSub->id)->first();
                 if (! $local) {
+                    // Reconstruir el registro local que el webhook no creó (desarrollo sin stripe listen).
                     $firstItem = $stripeSub->items->data[0] ?? null;
                     $local = $user->subscriptions()->create([
                         'type' => $subscriptionName,

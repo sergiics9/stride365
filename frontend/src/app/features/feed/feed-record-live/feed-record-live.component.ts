@@ -49,6 +49,7 @@ export class FeedRecordLiveComponent implements OnDestroy {
       this.recordingId = a.id;
       this.phase.set('recording');
       this.buffer = [];
+      // Vamos enviando puntos al backend en lotes para no saturar la API.
       this.flushTimer = setInterval(() => void this.flush(), 4000);
       this.watchId = navigator.geolocation.watchPosition(
         (pos) => {
@@ -56,6 +57,7 @@ export class FeedRecordLiveComponent implements OnDestroy {
           const lat = pos.coords.latitude;
           const ts = Math.floor(Date.now() / 1000);
           const alt = pos.coords.altitude;
+          // Formato GeoJSON: [lng, lat, elev?, timestamp]
           if (alt != null && Number.isFinite(alt)) {
             this.buffer.push([lng, lat, alt, ts]);
           } else {

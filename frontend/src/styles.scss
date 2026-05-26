@@ -1,7 +1,6 @@
 @use 'sass:color';
 @use 'styles/variables' as *;
 
-// ─── Bootstrap con la paleta de la marca ────────────────────────────────
 @use 'bootstrap/scss/bootstrap' with (
   $primary: $primary,
   $secondary: $secondary,
@@ -28,11 +27,9 @@
   $link-hover-color: $brand-700
 );
 
-// ─── Tipografía premium ─────────────────────────────────────────────────
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap');
 
 :root {
-  // tokens — expuestos por si algún componente quiere consumirlos
   --s365-ink-950: #{$ink-950};
   --s365-ink-900: #{$ink-900};
   --s365-ink-700: #{$ink-700};
@@ -81,7 +78,6 @@ h1, h2, h3, h4, h5, h6,
 
 a { transition: color 0.15s ease; }
 
-// ─── SweetAlert2 — sin backdrop ──────────────────────────────────────────────
 .swal2-container.swal2-backdrop-show,
 .swal2-container.swal2-noanimation {
   background: transparent !important;
@@ -96,7 +92,6 @@ hr { border-color: $ink-150; opacity: 1; }
   opacity: 0.6;
 }
 
-// ─── Navbar ─────────────────────────────────────────────────────────────
 .navbar.bg-dark {
   background: linear-gradient(180deg, $ink-950 0%, $ink-900 100%) !important;
   border-bottom: 1px solid rgba($white, 0.06) !important;
@@ -112,7 +107,6 @@ hr { border-color: $ink-150; opacity: 1; }
     position: relative;
     padding-left: 0.25rem;
 
-    // acento azul deportivo a la izquierda del logo
     &::before {
       content: '';
       position: absolute;
@@ -149,7 +143,6 @@ hr { border-color: $ink-150; opacity: 1; }
   }
 }
 
-// ─── Botones ────────────────────────────────────────────────────────────
 .btn {
   font-weight: 600;
   letter-spacing: 0.005em;
@@ -237,7 +230,6 @@ hr { border-color: $ink-150; opacity: 1; }
 }
 .btn-link:hover { color: $brand-700; }
 
-// ─── Tarjetas ───────────────────────────────────────────────────────────
 .card {
   border: 1px solid $ink-150;
   background: $white;
@@ -255,7 +247,6 @@ hr { border-color: $ink-150; opacity: 1; }
   font-weight: 600;
 }
 
-// ─── Formularios ────────────────────────────────────────────────────────
 .form-label {
   font-weight: 500;
   color: $ink-700;
@@ -290,7 +281,6 @@ hr { border-color: $ink-150; opacity: 1; }
   color: $ink-500;
 }
 
-// ─── Badges & tags ──────────────────────────────────────────────────────
 .badge {
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -331,7 +321,6 @@ hr { border-color: $ink-150; opacity: 1; }
   box-shadow: inset 0 0 0 1px rgba($warning, 0.28);
 }
 
-// ─── Alerts ─────────────────────────────────────────────────────────────
 .alert {
   border: 1px solid transparent;
   border-radius: $border-radius;
@@ -361,7 +350,6 @@ hr { border-color: $ink-150; opacity: 1; }
   color: color.adjust($success, $lightness: -10%);
 }
 
-// ─── Tablas ─────────────────────────────────────────────────────────────
 .table {
   --bs-table-bg: transparent;
   color: $ink-900;
@@ -386,7 +374,6 @@ hr { border-color: $ink-150; opacity: 1; }
   background-color: $ink-25;
 }
 
-// ─── Dropdowns ──────────────────────────────────────────────────────────
 .dropdown-menu {
   border: 1px solid $ink-150;
   box-shadow: var(--s365-shadow-md);
@@ -413,7 +400,6 @@ hr { border-color: $ink-150; opacity: 1; }
   color: $danger !important;
 }
 
-// ─── Listas y paginación ────────────────────────────────────────────────
 .list-group-item { border-color: $ink-150; }
 
 .page-link {
@@ -427,7 +413,6 @@ hr { border-color: $ink-150; opacity: 1; }
   color: $white;
 }
 
-// ─── Modales ────────────────────────────────────────────────────────────
 .modal-content {
   border: 1px solid $ink-150;
   border-radius: $border-radius-lg;
@@ -436,10 +421,7 @@ hr { border-color: $ink-150; opacity: 1; }
 .modal-header,
 .modal-footer { border-color: $ink-150; }
 
-// ─── Dark mode ──────────────────────────────────────────────────────────
-// Bootstrap 5.3 maneja sus componentes; aquí solo sobreescribimos los custom.
 [data-bs-theme="dark"] {
-  // Tokens
   --s365-ink-950: #f0f4f8;
   --s365-ink-900: #dde1e8;
   --s365-ink-700: #c2c8d2;
@@ -451,13 +433,11 @@ hr { border-color: $ink-150; opacity: 1; }
   --s365-shadow-md: 0 6px 18px rgba(0, 0, 0, 0.30), 0 2px 4px rgba(0, 0, 0, 0.20);
   --s365-shadow-lg: 0 18px 40px rgba(0, 0, 0, 0.40), 0 4px 12px rgba(0, 0, 0, 0.25);
 
-  // Body
   body {
     background: #0f1117;
     color: #dde1e8;
   }
 
-  // Headlines
   h1, h2, h3, h4, h5, h6,
   .h1, .h2, .h3, .h4, .h5, .h6 {
     color: #f0f4f8;
@@ -466,7 +446,6 @@ hr { border-color: $ink-150; opacity: 1; }
   .text-muted { color: #8a93a1 !important; }
   hr { border-color: #2d3148; }
 
-  // Tarjetas
   .card {
     background: #1a1d27;
     border-color: #2d3148;
@@ -476,7 +455,6 @@ hr { border-color: $ink-150; opacity: 1; }
     border-bottom-color: #2d3148;
   }
 
-  // Formularios
   .form-label { color: #c2c8d2; }
 
   .form-control,
@@ -501,7 +479,6 @@ hr { border-color: $ink-150; opacity: 1; }
     color: #8a93a1;
   }
 
-  // Botones
   .btn-outline-primary {
     background: transparent;
     border-color: #5c8bff;
@@ -526,7 +503,6 @@ hr { border-color: $ink-150; opacity: 1; }
     }
   }
 
-  // Badges
   .badge.bg-secondary {
     background: #242742 !important;
     color: #c2c8d2 !important;
@@ -537,14 +513,12 @@ hr { border-color: $ink-150; opacity: 1; }
     color: #c2c8d2 !important;
   }
 
-  // Alerts
   .alert-primary {
     background: rgba(47, 107, 255, 0.15);
     border-color: rgba(92, 139, 255, 0.25);
     color: #8aaaff;
   }
 
-  // Tablas
   .table {
     color: #dde1e8;
   }
@@ -563,7 +537,6 @@ hr { border-color: $ink-150; opacity: 1; }
     background-color: #1f2235;
   }
 
-  // Dropdowns
   .dropdown-menu {
     background: #1f2235;
     border-color: #2d3148;
@@ -582,7 +555,6 @@ hr { border-color: $ink-150; opacity: 1; }
 
   .dropdown-divider { border-color: #2d3148; }
 
-  // Listas y paginación
   .list-group-item {
     background: #1a1d27;
     border-color: #2d3148;
@@ -602,7 +574,6 @@ hr { border-color: $ink-150; opacity: 1; }
     border-color: #2f6bff;
   }
 
-  // Modales
   .modal-content {
     background: #1a1d27;
     border-color: #2d3148;
@@ -611,14 +582,12 @@ hr { border-color: $ink-150; opacity: 1; }
   .modal-header,
   .modal-footer { border-color: #2d3148; }
 
-  // Text body / bg helpers
   .text-body { color: #dde1e8 !important; }
   .bg-light { background: #1a1d27 !important; }
   .text-dark { color: #dde1e8 !important; }
   .bg-white { background: #1a1d27 !important; }
   .border { border-color: #2d3148 !important; }
 
-  // ── SweetAlert2 ────────────────────────────────────────────────────
   .swal2-container.swal2-backdrop-show,
   .swal2-container.swal2-noanimation {
     background: transparent !important;
@@ -664,14 +633,12 @@ hr { border-color: $ink-150; opacity: 1; }
   .swal2-icon.swal2-question { border-color: #5c8bff; color: #5c8bff; }
   .swal2-icon.swal2-info    { border-color: #5c8bff; color: #5c8bff; }
 
-  // Iconos animados de success/error
   .swal2-success-ring { border-color: rgba(22, 160, 107, 0.3); }
   .swal2-success-fix,
   [class^='swal2-success-line'] { background: #16a06b; }
   .swal2-x-mark-line-left,
   .swal2-x-mark-line-right { background: #e0364f; }
 
-  // Toasts
   .swal2-popup.swal2-toast {
     background: #1f2235;
     border: 1px solid #2d3148;
@@ -681,11 +648,9 @@ hr { border-color: $ink-150; opacity: 1; }
     .swal2-timer-progress-bar { background: rgba(92, 139, 255, 0.6); }
   }
 
-  // Backdrop un poco más opaco en dark
   .swal2-container.swal2-backdrop-show { background: rgba(0, 0, 0, 0.65); }
 }
 
-// ─── Foco accesible global ──────────────────────────────────────────────
 :focus-visible {
   outline: none;
 }
@@ -699,7 +664,6 @@ a:focus-visible {
   box-shadow: 0 0 0 4px rgba($brand-500, 0.30);
 }
 
-// ─── Utilidades de marca ────────────────────────────────────────────────
 .bg-brand-soft { background: $brand-100; }
 .text-brand    { color: $brand-600 !important; }
 

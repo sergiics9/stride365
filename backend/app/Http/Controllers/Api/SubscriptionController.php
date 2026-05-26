@@ -143,6 +143,7 @@ class SubscriptionController extends Controller
 
         $separator = str_contains($validated['success_url'], '?') ? '&' : '?';
 
+        // metadata.subscription_name permite localizar la suscripción en syncFromStripeApi si falla el webhook.
         $checkout = $user
             ->newSubscription($name, $priceId)
             ->checkout([
@@ -164,6 +165,7 @@ class SubscriptionController extends Controller
                 ],
             ]);
 
+        // Fila pending hasta que Stripe confirme el pago (webhook o sync manual en memberships).
         ClubUser::firstOrCreate(
             [
                 'user_id' => $user->id,

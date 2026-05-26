@@ -132,6 +132,7 @@ export class ActividadDetailComponent implements AfterViewInit, OnDestroy {
         maxZoom: 19,
       }).addTo(this.map);
     } else {
+      // Al recargar la actividad, quitamos solo la polyline anterior.
       this.map.eachLayer((layer: any) => {
         if (layer instanceof L.Polyline) this.map.removeLayer(layer);
       });

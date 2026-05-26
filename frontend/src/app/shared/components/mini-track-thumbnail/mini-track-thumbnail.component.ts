@@ -44,7 +44,6 @@ import { extractLngLatPairsFromTrackGeoJson } from '../../utils/track-geojson-co
       width: 100%;
       background: #e9ecef;
     }
-    /* Altura fija: Leaflet necesita píxeles reales; % sobre padre sin height falla a 0 */
     .mini-track:not(.mini-track--compact) {
       height: 200px;
       min-height: 200px;
@@ -73,15 +72,16 @@ export class MiniTrackThumbnailComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  /** GeoJSON del track (Feature, LineString, etc.) */
+  
   readonly track = input<unknown | null | undefined>(null);
-  /** Si true, altura fija menor (debajo de imagen de portada). */
+  
   readonly compact = input(false);
   readonly ariaLabel = input('Mapa del recorrido');
 
   private readonly mapEl = viewChild<ElementRef<HTMLDivElement>>('mapEl');
 
   private map: import('leaflet').Map | null = null;
+  // Contador para ignorar sincronizaciones antiguas si el track cambia muy rápido.
   private syncGeneration = 0;
   private resizeObserver: ResizeObserver | null = null;
 
@@ -133,6 +133,8 @@ export class MiniTrackThumbnailComponent {
 
     this.teardownMap();
 
+    // Leaflet necesita que el contenedor ya tenga tamaño real en pantalla.
+    // Esperamos un par de frames y, si hace falta, un pequeño retardo.
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
@@ -154,6 +156,7 @@ export class MiniTrackThumbnailComponent {
 
     const geo = stripGeoJsonCoordinatesTo2D(raw) as object;
 
+    // Miniatura de solo lectura: sin zoom ni arrastre, solo vista previa del track.
     this.map = L.map(el, {
       zoomControl: false,
       dragging: false,
@@ -195,8 +198,8 @@ export class MiniTrackThumbnailComponent {
     });
     this.resizeObserver.observe(el);
 
-    // whenReady only fires after setView/fitBounds is called (Leaflet _loaded flag),
-    // so calling them inside whenReady creates a deadlock — tiles never load.
+    // Centramos el mapa en la ruta. No usamos whenReady aquí porque encadenarlo
+    // con fitBounds/setView puede dejar el mapa sin cargar teselas.
     if (bounds?.isValid?.()) {
       mapInstance.fitBounds(bounds, { padding: [10, 10], maxZoom: 16 });
     } else {

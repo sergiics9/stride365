@@ -1,4 +1,7 @@
-/** Extrae pares [lng, lat] de un GeoJSON de track (Feature, LineString, MultiLineString, FeatureCollection). */
+
+// GeoJSON guarda coordenadas como [longitud, latitud], pero Leaflet y el mapa
+// trabajan con [latitud, longitud]. Esta utilidad recorre el árbol GeoJSON
+// y extrae pares válidos sin importar si viene como Feature, LineString, etc.
 export function extractLngLatPairsFromTrackGeoJson(geo: unknown): [number, number][] {
   const out: [number, number][] = [];
 

@@ -4,10 +4,8 @@ import { filter, map } from 'rxjs/operators';
 
 import { Club } from '../models';
 
-/**
- * El `resolve` del club vive en el segmento `:clubId`. Las rutas lazy hijas
- * (`actividades`, `socios`, etc.) no reciben ese `data` en el padre inmediato.
- */
+// El club activo lo resuelve un Route Resolver y queda en `route.data['club']`.
+// Subimos por el árbol de rutas por si estamos en un hijo (p. ej. actividades).
 export function findResolvedClub(route: ActivatedRoute): Club | null {
   let r: ActivatedRoute | null = route;
   while (r) {
@@ -20,7 +18,9 @@ export function findResolvedClub(route: ActivatedRoute): Club | null {
   return null;
 }
 
-/** Emite de nuevo el club resuelto tras cada navegación terminada. */
+
+// Vuelve a leer el club resuelto cada vez que termina una navegación,
+// para que los componentes reaccionen al cambiar de club sin recargar.
 export function resolvedClub$(route: ActivatedRoute, router: Router): Observable<Club | null> {
   return merge(
     of(null),

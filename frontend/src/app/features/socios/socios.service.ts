@@ -33,7 +33,7 @@ export class SociosService {
   readonly error = this._error.asReadonly();
   readonly saving = this._saving.asReadonly();
 
-  /** Listado puntual (p. ej. formularios) sin tocar el estado interno de la lista. */
+  
   async fetchPage(clubId: number, params: ListParams = {}): Promise<Paginated<Socio>> {
     return await firstValueFrom(
       this.http.get<Paginated<Socio>>(`${environment.apiUrl}/clubes/${clubId}/socios`, {

@@ -48,6 +48,7 @@ final class TrackMetrics
                 continue;
             }
             $n = count($c);
+            // Con timestamp la cota va en índice 2; con solo 3 valores, distinguimos cota de unix ts (< 1e9 ≈ metros).
             if ($n >= 4 && is_numeric($c[2])) {
                 $out[] = (float) $c[2];
 
@@ -83,10 +84,9 @@ final class TrackMetrics
             return 0;
         }
 
-        // Cumulative approach: compare each point to the last confirmed reference,
-        // not just the previous point. This correctly handles smooth/high-frequency
-        // tracks where consecutive step differences are below the noise threshold but
-        // the cumulative ascent is real (comparing consecutive points would yield 0).
+        // Acumulamos respecto al último punto de referencia confirmado, no solo el anterior.
+        // Así capturamos subidas reales en tracks suaves donde el salto entre puntos consecutivos
+        // queda por debajo del umbral de ruido GPS (comparar solo vecinos daría desnivel 0).
         $gain = 0.0;
         $ref = $elevationsM[0];
 
@@ -96,7 +96,7 @@ final class TrackMetrics
                 $gain += $delta;
                 $ref = $elevationsM[$i];
             } elseif ($delta <= -$noiseThresholdM) {
-                // Confirmed descent — reset reference so the next ascent is measured fresh.
+                // Bajada confirmada: reiniciamos referencia para medir la siguiente subida desde cero.
                 $ref = $elevationsM[$i];
             }
         }
@@ -150,6 +150,7 @@ final class TrackMetrics
      */
     public static function timestampFromCoord(array $c): ?int
     {
+        // Umbral ~2001 en unix: valores menores en la 3ª posición son cotas, no timestamps.
         return match (count($c)) {
             3 => is_numeric($c[2]) && (float) $c[2] > 1_000_000_000 ? (int) $c[2] : null,
             4, 5 => is_numeric($c[3]) ? (int) $c[3] : null,

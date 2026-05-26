@@ -131,6 +131,7 @@ class User extends Authenticatable
             return false;
         }
 
+        // Tras checkout puede quedar pending en club_user hasta el webhook: comprobamos Cashier.
         try {
             return $this->subscribed(ClubUser::buildSubscriptionName('club', $clubId));
         } catch (Throwable $e) {

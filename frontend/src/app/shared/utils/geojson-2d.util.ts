@@ -1,4 +1,6 @@
-/** Reduce LineString / MultiLineString coordinates to [lng, lat] for map libraries. */
+
+// Nuestros tracks pueden traer cotas, timestamps o pulsaciones en cada punto.
+// Leaflet solo necesita [lng, lat] para dibujar, así que recortamos el resto.
 export function stripGeoJsonCoordinatesTo2D(geo: unknown): unknown {
   const stripRing = (ring: unknown): number[][] => {
     if (!Array.isArray(ring)) return [];

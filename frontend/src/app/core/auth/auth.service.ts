@@ -51,11 +51,7 @@ export class AuthService {
 
   readonly hasAnyMembership = computed(() => this.activeMemberships().length > 0);
 
-  /**
-   * Listado de clubes, ficha pública y solicitud de club están disponibles
-   * para cualquier usuario autenticado. Las rutas internas (socios, actividades…)
-   * siguen protegidas por membresía en el router y en la API.
-   */
+  
   readonly canAccessClubes = computed(() => this.isAuthenticated());
 
   readonly fullName = computed(() => {
@@ -183,7 +179,7 @@ export class AuthService {
         this.http.post(`${environment.apiUrl}/auth/logout`, {}),
       );
     } catch {
-      /* aunque falle el backend, limpiamos sesión local */
+      
     } finally {
       this.clearSession();
     }
@@ -191,6 +187,8 @@ export class AuthService {
 
   private _meInFlight: Promise<MeResponse | null> | null = null;
 
+  // Evita disparar varias peticiones /auth/me a la vez si varios guards
+  // o componentes piden el perfil casi al mismo tiempo.
   async me(): Promise<MeResponse | null> {
     if (!this.isAuthenticated()) {
       return null;

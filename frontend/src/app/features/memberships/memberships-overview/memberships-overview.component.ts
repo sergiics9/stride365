@@ -147,13 +147,14 @@ export class MembershipsOverviewComponent {
     if (m.current_period_end) {
       return m.current_period_end;
     }
+    // Si Stripe aún no devolvió fin de periodo, estimamos un año desde el alta.
     if (m.subscribed_at) {
       return this.oneYearAfter(m.subscribed_at);
     }
     return null;
   }
 
-  /** Cuota anual: si Stripe no devolvió fin de periodo, estimamos 1 año desde el alta/pago. */
+  
   private oneYearAfter(isoDate: string): string {
     const d = new Date(isoDate);
     if (Number.isNaN(d.getTime())) {
