@@ -81,6 +81,12 @@ h1, h2, h3, h4, h5, h6,
 
 a { transition: color 0.15s ease; }
 
+// ─── SweetAlert2 — sin backdrop ──────────────────────────────────────────────
+.swal2-container.swal2-backdrop-show,
+.swal2-container.swal2-noanimation {
+  background: transparent !important;
+}
+
 .text-muted { color: $ink-400 !important; }
 
 hr { border-color: $ink-150; opacity: 1; }
@@ -613,6 +619,11 @@ hr { border-color: $ink-150; opacity: 1; }
   .border { border-color: #2d3148 !important; }
 
   // ── SweetAlert2 ────────────────────────────────────────────────────
+  .swal2-container.swal2-backdrop-show,
+  .swal2-container.swal2-noanimation {
+    background: transparent !important;
+  }
+
   .swal2-popup {
     background: #1a1d27;
     border: 1px solid #2d3148;
