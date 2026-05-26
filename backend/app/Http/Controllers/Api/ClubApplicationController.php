@@ -5,10 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreClubApplicationRequest;
 use App\Models\Club;
-use App\Models\ClubUser;
-use App\Models\User;
-use App\Notifications\ClubApplicationApprovedNotification;
-use App\Notifications\ClubApplicationRejectedNotification;
+use App\Services\ClubApplicationActions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -16,6 +13,10 @@ use Illuminate\Validation\ValidationException;
 
 class ClubApplicationController extends Controller
 {
+    public function __construct(private readonly ClubApplicationActions $actions)
+    {
+    }
+
     public function index(Request $request): JsonResponse
     {
         abort_unless($request->user()->hasRole('super_admin'), 403);
@@ -78,45 +79,10 @@ class ClubApplicationController extends Controller
     {
         abort_unless($request->user()->hasRole('super_admin'), 403);
 
-        if ($club->application_status === Club::STATUS_APPROVED) {
+        $result = $this->actions->approve($club, $request->user());
+
+        if ($result === ClubApplicationActions::RESULT_ALREADY_APPROVED) {
             return response()->json(['message' => 'El club ya está aprobado.'], 422);
-        }
-
-        $club->fill([
-            'application_status' => Club::STATUS_APPROVED,
-            'approved_by' => $request->user()->id,
-            'approved_at' => now(),
-            'rejection_reason' => null,
-            'active' => true,
-        ])->save();
-
-        if ($club->requested_by) {
-            ClubUser::firstOrCreate(
-                [
-                    'user_id' => $club->requested_by,
-                    'club_id' => $club->id,
-                    'role' => ClubUser::ROLE_ADMIN,
-                ],
-                [
-                    'status' => ClubUser::STATUS_PENDING,
-                    'subscription_name' => ClubUser::buildSubscriptionName('club', $club->id),
-                    'joined_at' => now()->toDateString(),
-                ]
-            );
-
-            $requester = User::find($club->requested_by);
-            if ($requester) {
-                $subName = ClubUser::buildSubscriptionName('club', $club->id);
-                if ($requester->subscribed($subName)) {
-                    $cashierSub = $requester->subscription($subName);
-                    if ($cashierSub) {
-                        ClubUser::syncFromCashierSubscription($cashierSub);
-                    }
-                }
-
-                $clubUrl = config('app.frontend_url').'/clubes/'.$club->id;
-                $requester->notify(new ClubApplicationApprovedNotification($club->fresh(), $clubUrl));
-            }
         }
 
         return response()->json([
@@ -133,46 +99,10 @@ class ClubApplicationController extends Controller
             'reason' => ['required', 'string', 'max:1000'],
         ]);
 
-        if ($club->application_status === Club::STATUS_REJECTED) {
+        $result = $this->actions->reject($club, $request->user(), $validated['reason']);
+
+        if ($result === ClubApplicationActions::RESULT_ALREADY_REJECTED) {
             return response()->json(['message' => 'El club ya estaba rechazado.'], 422);
-        }
-
-        $club->fill([
-            'application_status' => Club::STATUS_REJECTED,
-            'approved_by' => $request->user()->id,
-            'approved_at' => now(),
-            'rejection_reason' => $validated['reason'],
-            'active' => false,
-        ])->save();
-
-        // Cancelar suscripción Stripe del solicitante (si existe)
-        if ($club->requested_by) {
-            $membership = ClubUser::where('user_id', $club->requested_by)
-                ->where('club_id', $club->id)
-                ->where('role', ClubUser::ROLE_ADMIN)
-                ->first();
-
-            if ($membership) {
-                $user = $membership->user;
-                $name = $membership->subscription_name ?? ClubUser::buildSubscriptionName('club', $club->id);
-                if ($user && $user->subscribed($name)) {
-                    try {
-                        $user->subscription($name)->cancelNow();
-                    } catch (\Throwable $e) {
-                        // Si Stripe falla, marcamos localmente como cancelada.
-                    }
-                }
-                $membership->update([
-                    'status' => ClubUser::STATUS_INACTIVE,
-                    'left_at' => now()->toDateString(),
-                    'left_reason' => 'Solicitud rechazada: '.$validated['reason'],
-                ]);
-            }
-
-            $requester = User::find($club->requested_by);
-            if ($requester) {
-                $requester->notify(new ClubApplicationRejectedNotification($club->fresh(), $validated['reason']));
-            }
         }
 
         return response()->json([

@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 
 import { authGuard, guestGuard } from './core/guards/auth.guard';
-import { roleGuard } from './core/guards/role.guard';
 import { clubAccessGuard } from './core/guards/subscription.guard';
 
 export const routes: Routes = [
@@ -51,14 +50,6 @@ export const routes: Routes = [
         canMatch: [clubAccessGuard],
         loadChildren: () =>
           import('./features/clubes/clubes.routes').then((m) => m.CLUBES_ROUTES),
-      },
-      {
-        path: 'super-admin',
-        canMatch: [roleGuard('super_admin')],
-        loadChildren: () =>
-          import('./features/super-admin/super-admin.routes').then(
-            (m) => m.SUPER_ADMIN_ROUTES,
-          ),
       },
       {
         path: 'forbidden',

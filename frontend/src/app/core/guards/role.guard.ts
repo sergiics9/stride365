@@ -8,7 +8,6 @@ import {
   UrlTree,
 } from '@angular/router';
 
-import { RoleName } from '../../shared/models';
 import { AuthService } from '../auth/auth.service';
 
 // Busca el id del club en la URL completa, p. ej. /clubes/3/actividades → 3.
@@ -60,27 +59,6 @@ function resolveClubIdForGuard(router: Router, segments: readonly UrlSegment[]):
   }
 
   return clubIdFromUrlTree(router.parseUrl(router.url));
-}
-
-
-// Comprueba roles globales de Spatie (super_admin, usuario).
-// Para permisos dentro de un club concreto, usar clubMembershipGuard.
-export function roleGuard(...allowedRoles: RoleName[]): CanMatchFn {
-  return async () => {
-    const auth = inject(AuthService);
-    const router = inject(Router);
-
-    if (!auth.isAuthenticated()) {
-      return router.createUrlTree(['/auth/login']);
-    }
-
-    if (!auth.user()) {
-      await auth.me();
-    }
-
-    const has = allowedRoles.some((r) => auth.hasRole(r));
-    return has ? true : router.createUrlTree(['/forbidden']);
-  };
 }
 
 

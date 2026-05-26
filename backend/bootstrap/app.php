@@ -24,6 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => RoleOrPermissionMiddleware::class,
         ]);
 
+        $middleware->redirectGuestsTo(fn () => route('admin.login'));
+
         $middleware->validateCsrfTokens(except: [
             'webhook/stripe',
             'api/webhook/stripe',
