@@ -101,7 +101,7 @@
               <h4 class="h6 mt-3">Guías</h4>
               <ul class="small mb-0 ps-3">
                 @for (g of a.guias; track g.id) {
-                  <li>{{ g.nombre }} {{ g.apellido }} <span class="text-muted">{{ g.email }}</span></li>
+                  <li>{{ g.nombre }} {{ g.apellido }}</li>
                 }
               </ul>
             }
@@ -136,7 +136,6 @@
               <thead>
                 <tr>
                   <th>Socio</th>
-                  <th>Email</th>
                   <th>Inscrito</th>
                   @if (canManage()) {
                     <th class="text-end">Acciones</th>
@@ -147,7 +146,6 @@
                 @for (ins of inscripciones(); track ins.id) {
                   <tr>
                     <td>{{ ins.user?.nombre }} {{ ins.user?.apellido }}</td>
-                    <td>{{ ins.user?.email }}</td>
                     <td class="small">{{ ins.fecha_inscripcion | date: 'medium' }}</td>
                     @if (canManage()) {
                       <td class="text-end">
