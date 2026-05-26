@@ -72,9 +72,8 @@ export class MiniTrackThumbnailComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  
   readonly track = input<unknown | null | undefined>(null);
-  
+
   readonly compact = input(false);
   readonly ariaLabel = input('Mapa del recorrido');
 
